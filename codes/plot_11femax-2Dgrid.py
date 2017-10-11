@@ -23,27 +23,31 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-def lum2loglum(lum):
-    return str(format(np.log10(lum), '.3f'))
-
 class Plot_L_Fe(object):
     """Makes a figure that contains a grid where carbon is plotted color-mapped
     in a luminosity and Fe grid.
     """
     
-    def __init__(self, lm='downbranch', interp='none',
+    def __init__(self, date, lm='downbranch', interp='none',
                  show_fig=True, save_fig=False):
 
+        self.date = date
         self.lm = lm
         self.interp = interp
         self.show_fig = show_fig
         self.save_fig = save_fig 
-
-        L_scal = np.arange(0.6, 2.01, 0.1)
-        self.L = [lum2loglum(0.23e9 * l) for l in L_scal]                
         
-        self.Fe = ['0.00', '0.0001', '0.0002', '0.0005', '0.001',
-                   '0.002', '0.005', '0.01', '0.02', '0.05']
+        if self.date == '19d':
+            self._L_max = 3.5e9
+        elif self.date == '12d':
+            self._L_max = 2.3e9        
+        
+        self.L = [str(format(l, '.3f')) for l in np.log10(np.logspace(
+                  np.log10(self._L_max / 4), np.log10(self._L_max * 1.5), 15))] 
+        
+        
+        self.Fe = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00',
+                 '10.00', '20.00']
         
         self.C = None
         self.norm = None
@@ -64,8 +68,8 @@ class Plot_L_Fe(object):
     def set_fig_frame(self):
         """Define the configuration of the figure axes."""
         
-        x_label = r'$X(\rm{Fe})$'
-        y_label = r'$L\ /\ {\mathrm{11fe}}$'
+        x_label = r'$\rm{Fe}$ scaling factor'
+        y_label = r'$L\ /\ L_{\mathrm{11fe}}$'
         
         self.ax.set_xlabel(x_label, fontsize=self.fs_label)
         self.ax.set_ylabel(y_label, fontsize=self.fs_label)
@@ -78,15 +82,13 @@ class Plot_L_Fe(object):
 
     def load_data(self):
         
-        case_folder = path_tardis_output + 'hypo-carbon-grid/'
+        case_folder = path_tardis_output + '11fe_L_Fe-grid_' + self.date + '/'
         def get_fname(lm, L, Fe): 
-            Si = str(0.60 - float(Fe))
             fname = 'loglum-' + L + '_line_interaction-' + lm + '_Fes-' + Fe
-            fname = 'abun_Fe-' + Fe + '_abun_Si-' + Si + '_loglum-' + L
             fname = case_folder + fname + '/' + fname + '.pkl'
             return fname     
             
-        carbon_1D, T_inner = [], []
+        carbon_1D = []
         #[::-1] in L is because we want the top row to contain the highest L,
         #since imshow (I think) plot the first row on top.
         for L in self.L[::-1]:
@@ -96,21 +98,14 @@ class Plot_L_Fe(object):
                     pEW = pkl['pEW_fC']
                     if np.isnan(pEW) or pEW < 0.5:
                         pEW = 0.5                    
+                    #elif pEW > 10.:
+                    #    pEW = 10.    
                     carbon_1D.append(pEW)
-                    #T_inner.append(pkl['t_inner'].value)
-                    print Fe, 10.**float(L) / 0.23e9, pkl['t_inner'], pEW
                     
-        for L in self.L:
-            for Fe in self.Fe:
-                with open(get_fname(self.lm, L, Fe), 'r') as inp:
-                    pkl = cPickle.load(inp)
-                    T_inner.append(pkl['t_inner'].value)
-
         carbon_1D = np.array(carbon_1D)
         carbon_1D = np.nan_to_num(carbon_1D)
         self.pEW_max = np.ceil(max(carbon_1D))
         self.C = np.reshape(carbon_1D, (15, 10))
-        self.T = np.reshape(T_inner, (15, 10))
 
     def plotting(self):
                 
@@ -122,30 +117,15 @@ class Plot_L_Fe(object):
         #Format ticks. Note that the range of values plotted in x (and y) is
         #defined when calling imshow, under the 'extent' argument.
         xticks_pos = np.arange(1.5, 10.6, 1.)
-        xticks_label = self.Fe
-                   
+        xticks_label = ['0.00', '0.05', '0.1', '0.2', '0.5', '1', '2', '5',
+                        '10', '20']
         plt.xticks(xticks_pos, xticks_label, rotation='vertical')
         
         yticks_pos = np.arange(1.5, 15.6, 1.)
-        yticks_label = [str(format(10.**float(L) / 0.23e9, '.2f'))
+        xticks_label = [str(format(10.**float(L) / self._L_max, '.2f'))
                         for L in self.L]
-        plt.yticks(yticks_pos, yticks_label)        
+        plt.yticks(yticks_pos, xticks_label)        
         
-    def plot_T_contours(self):
-        x = np.arange(1.5, 10.6, 1.)
-        y = np.arange(1.5, 15.6, 1.)
-        X, Y = np.meshgrid(x, y)
-        Z = self.T
-        levels = np.arange(8000., 12001., 500)
-        CS = plt.contour(X, Y, Z, levels, colors='white') 
-        
-        fmt = {}
-        labels = ['T=' + str(format(lvl, '.0f')) + ' K' for lvl in levels]
-        for l, label in zip(CS.levels, labels):
-            fmt[l] = label
-            
-        plt.clabel(CS, CS.levels, fmt=fmt, inline=True, fontsize=12.)
-
     def add_colorbar(self):
         
         #Plot the color bar.
@@ -170,21 +150,20 @@ class Plot_L_Fe(object):
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
-            plt.savefig(directory + 'Fig_hypo-grid_' + self.lm 
-                        + '.pdf', format='pdf', dpi=360)
+            plt.savefig(directory + 'Fig_L_Fe_' + self.lm + '_'
+                        + self.date + '.pdf', format='pdf', dpi=360)
 
     def make_plot(self):
         self.set_fig_frame()
         self.load_data()
         self.plotting()
-        self.plot_T_contours()
         self.add_colorbar()
         plt.tight_layout()
         self.save_figure()
         if self.show_fig:
             plt.show()
         
-Plot_L_Fe(lm='downbranch', interp='none' ,show_fig=True, save_fig=True)
+Plot_L_Fe(date='12d', lm='downbranch', interp='none' ,show_fig=True, save_fig=True)
 #Plot_L_Fe(lm='macroatom', interp='none' ,show_fig=True, save_fig=True)
 #Plot_L_Fe(lm='downbranch', interp='spline16' ,show_fig=True, save_fig=True)
 
