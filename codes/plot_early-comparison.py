@@ -76,18 +76,18 @@ class Compare_11fe(object):
         
         
         #Load new stratified downbranch model.
-        case_folder = path_tardis_output + '11fe_default_L-scaled_new/'
-        fname = ('velocity_start-12400_loglum-' + self.L + '_line_interaction'
-                 + '-downbranch_time_explosion-5.9')
+        case_folder = path_tardis_output + '11fe_default_L-scaled_UP/'
+        fname = ('line_interaction-downbranch_loglum-' + self.L
+                 + '_velocity_start-12400_time_explosion-5.9')                  
         fullpath = case_folder + fname + '/' + fname + '.pkl'          
         with open(fullpath, 'r') as inp:
             self.pkl_syn_down_new = cPickle.load(inp)        
 
 
         #Load new stratified macroatom model.
-        case_folder = path_tardis_output + '11fe_default_L-scaled_new/'
-        fname = ('velocity_start-12400_loglum-' + self.L + '_line_interaction'
-                 + '-macroatom_time_explosion-5.9')
+        case_folder = path_tardis_output + '11fe_default_L-scaled_UP/'
+        fname = ('line_interaction-macroatom_loglum-' + self.L
+                 + '_velocity_start-12400_time_explosion-5.9')  
         fullpath = case_folder + fname + '/' + fname + '.pkl'          
         with open(fullpath, 'r') as inp:
             self.pkl_syn_macr_new = cPickle.load(inp)    
@@ -132,7 +132,7 @@ class Compare_11fe(object):
     def save_figure(self, extension='png', dpi=360):        
         directory = './../OUTPUT_FILES/FIGURES/'
         if self.save_fig:
-            plt.savefig(directory + 'Fig_11fe_early-comparison.'
+            plt.savefig(directory + 'Fig_11fe_early-comparison_up.'
                         + extension, format=extension, dpi=dpi)
     
     def run_comparison(self):
@@ -144,7 +144,7 @@ class Compare_11fe(object):
             plt.show()
 
         
-Compare_11fe(L='8.505', show_fig=True, save_fig=True)
+Compare_11fe(L='8.505', show_fig=True, save_fig=False)
 
 
 
