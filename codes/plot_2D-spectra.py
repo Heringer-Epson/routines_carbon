@@ -31,10 +31,13 @@ class Plot_L_Fe(object):
     in a luminosity and Fe grid.
     """
     
-    def __init__(self, date='early', lm='downbranch', L_range=None, Fes_range=None,
-                 T_range=None, colormap_for='L', show_fig=True, save_fig=False):
+    def __init__(self, event='11fe',  date='6d', layer='13400', lm='downbranch',
+                 L_range=None, Fes_range=None, T_range=None, colormap_for='L', 
+                 show_fig=True, save_fig=False):
 
+        self.event = event
         self.date = date
+        self.layer = layer
         self.lm = lm
         self.L_range = L_range
         self.Fes_range = Fes_range
@@ -43,18 +46,32 @@ class Plot_L_Fe(object):
         self.show_fig = show_fig
         self.save_fig = save_fig 
 
-        if self.date == '6d':
-            L_max = 0.32e9
-        elif self.date == '12d':
-            L_max = 2.3e9  
-        elif self.date == '19d':
-            L_max = 3.5e9  
+        if self.event == '11fe':
+
+            if self.date == '6d':
+                L_max = 0.32e9
+            elif self.date == '12d':
+                L_max = 2.3e9  
+            elif self.date == '19d':
+                L_max = 3.5e9  
+                
+            self.L_scal = np.arange(0.2, 1.61, 0.1)
+            self.L = np.array([lum2loglum(L_max * l) for l in self.L_scal])
+            self.Fes = np.array(['0.00', '0.20', '0.50', '1.00', '2.00', '5.00',
+                                 '10.00', '20.00', '50.00', '100.00'])               
             
-        self.L_scal = np.arange(0.2, 1.61, 0.1)
-        self.L = np.array([lum2loglum(L_max * l) for l in self.L_scal]) 
-        self.Fes = np.array(['0.00', '0.20', '0.50', '1.00', '2.00', '5.00',
-                             '10.00', '20.00', '50.00', '100.00'])               
-        
+        if self.event == '05bl':
+
+            if self.date == '12d':
+                L_max = 8.617
+            elif self.date == '22d':
+                L_max = 8.861  
+                
+            self.L_scal = np.arange(0.5, 4.01, 0.25)
+            self.L = np.array([lum2loglum(10.**L_max * l) for l in self.L_scal])
+            self.Fes = np.array(['0.00', '0.01', '0.20', '0.50', '1.00', '2.00', '5.00',
+                          '10.00', '20.00', '50.00'])               
+
         self._norm = None
         
         self.fig, self.ax = plt.subplots(figsize=(14,8))
@@ -167,8 +184,24 @@ class Plot_L_Fe(object):
     def load_and_plot_observational_spectrum(self):
         
         #Load observed spectrum. 
-        fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
-                    + 'observational_spectra/2011fe/2011_08_28.pkl')
+        if self.event == '11fe' and self.date == '6d':
+            fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
+                        + 'observational_spectra/2011fe/2011_08_28.pkl')
+        elif self.event == '11fe' and self.date == '12d':
+            fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
+                        + 'observational_spectra/2011fe/2011_09_03.pkl')
+        elif self.event == '11fe' and self.date == '19d':
+            fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
+                        + 'observational_spectra/2011fe/2011_09_10.pkl')                        
+
+        elif self.event == '05bl' and self.date == '12d':
+            fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
+                        + 'observational_spectra/2005bl/2005_04_17.pkl')
+
+        elif self.event == '05bl' and self.date == '22d':
+            fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
+                        + 'observational_spectra/2005bl/2005_04_26.pkl')
+  
         with open(fullpath, 'r') as inp:
             pkl = cPickle.load(inp)
             
@@ -176,8 +209,9 @@ class Plot_L_Fe(object):
                          ls='-', lw=3., zorder=2., label='11fe obs.')
                     
     def load_data(self):
-        
-        case_folder = path_tardis_output + self.date + '-carbon-grid_v19590_UP/'
+      
+        case_folder = (path_tardis_output + self.event + '_2D-grid_' + self.date +
+                       '_v' + self.layer + '_UP/')
         def get_fname(lm, L, Fe): 
             fname = 'Fe0-' + Fe + '_loglum-' + L + '_line_interaction-' + lm 
             fname = case_folder + fname + '/' + fname + '.pkl'
@@ -235,7 +269,7 @@ class Plot_L_Fe(object):
         cbar.set_ticklabels(self.tick_labels)
 
     def add_title_and_legend(self):
-        title = r'11fe_' + self.date + self.title_suffix
+        title = r'' + self.event + '_' + self.date + self.title_suffix
         self.ax.set_title(title, fontsize=self.fs_label)
         self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
                        labelspacing=0.05, loc=1)
@@ -244,8 +278,8 @@ class Plot_L_Fe(object):
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
-            plt.savefig(directory + 'Fig_' + self.date + '-spectra' +
-                        self.name_suffix + '_' + self.lm + '_v19590_UP.png',
+            plt.savefig(directory + 'Fig_' +self.event + '_' + self.date + '-spectra' +
+                        self.name_suffix + '_' + self.lm + '_v' + self.layer + '_UP.png',
                         format='png', dpi=360)
 
     def make_plot(self):
@@ -260,9 +294,38 @@ class Plot_L_Fe(object):
         self.save_figure()
         if self.show_fig:
             plt.show()
+        plt.close()    
 
-Plot_L_Fe(date='19d', lm='macroatom', L_range=[0.39, 0.41], Fes_range=None,
-          T_range=None, colormap_for='Fe', show_fig=True, save_fig=True)
+if __name__ == '__main__':
+
+    layer_list = ['13400', '19590']
+    date_list = ['6d', '12d', '19d']
+    L_list = [[0.39, 0.41], [0.59, 0.61], [0.79, 0.81], [0.99, 1.01], [1.19, 1.21]]
+
+    for layer in layer_list:
+        for date in date_list:
+            for L_range in L_list:
+                print 'Plotting: ', layer, date, L_range
+                #Plot_L_Fe(event='11fe', date=date, layer=layer, lm='macroatom',
+                #L_range=L_range, Fes_range=None, T_range=None,
+                #colormap_for='Fe', show_fig=True, save_fig=False)          
+
+    layer_list = ['8500']
+    date_list = ['12d', '22d']
+    L_list = [[0.74, 0.76], [0.99, 1.01], [1.99, 2.01], [2.99, 4.01]]
+
+    for layer in layer_list:
+        for date in date_list:
+            for L_range in L_list:
+                print 'Plotting: ', layer, date, L_range
+                Plot_L_Fe(event='05bl', date=date, layer=layer, lm='macroatom',
+                L_range=L_range, Fes_range=None, T_range=None,
+                colormap_for='Fe', show_fig=False, save_fig=True)          
+
+
+
+#Plot_L_Fe(date='19d', layer='13400', lm='macroatom', L_range=[0.39, 0.41],
+#          Fes_range=None, T_range=None, colormap_for='Fe', show_fig=True, save_fig=True)
 
 
 

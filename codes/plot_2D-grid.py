@@ -30,10 +30,11 @@ class Plot_L_Fe(object):
     in a luminosity and Fe grid.
     """
     
-    def __init__(self, date='early', case='C', quantity='pEW', lm='downbranch',
-                 show_fig=True, save_fig=False):
+    def __init__(self, date='early', layer='19590', case='C', quantity='pEW',
+                 lm='downbranch', show_fig=True, save_fig=False):
 
         self.date = date
+        self.layer = layer
         self.case = case
         self.quantity = quantity
         self.lm = lm
@@ -72,7 +73,8 @@ class Plot_L_Fe(object):
         self.fs_feature = 14
         
         if self.case == 'C':
-            self.case_folder = path_tardis_output + self.date + '-carbon-grid_v19590_UP/'
+            self.case_folder = (path_tardis_output + '11fe_2D-grid_' + self.date +
+                                '_v' + self.layer + '_UP/')
         elif self.case == 'no-C':
             self.case_folder = path_tardis_output + self.date + '-carbon-grid_no-C_new/'
 
@@ -265,7 +267,8 @@ class Plot_L_Fe(object):
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
             plt.savefig(directory + 'Fig_' + self.date + '-grid_' + self.case 
-                        + '_' + self.quantity + '_v19590_UP.png', format='png')
+                        + '_' + self.quantity + '_v' + self.layer + '_UP.png',
+                        format='png')
 
     def make_plot(self):
         self.set_quantity_vars()
@@ -281,15 +284,18 @@ class Plot_L_Fe(object):
         if self.show_fig:
             plt.show()
 
+
+
 #Plot_L_Fe(date='6d', case='C', quantity='pEW_fC', lm='macroatom',
 #          show_fig=True, save_fig=False)
           
 #Plot_L_Fe(date='12d', case='C', quantity='pEW_fC', lm='macroatom',
 #          show_fig=True, save_fig=False)
           
-Plot_L_Fe(date='12d', case='C', quantity='pEW_fC', lm='macroatom',
+#Plot_L_Fe(date='19d', layer='19590', case='C', quantity='pEW_fC', lm='macroatom',
+#          show_fig=True, save_fig=True)                    
+
+Plot_L_Fe(date='12d', layer='13400', case='C', quantity='pEW_fC', lm='macroatom',
           show_fig=True, save_fig=True)                    
-
-
 
 
