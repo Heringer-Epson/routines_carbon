@@ -22,7 +22,7 @@ import colormaps as cmaps
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
-#abacaxi
+#abacaxi2
 def lum2loglum(lum):
     return str(format(np.log10(lum), '.3f'))
 
