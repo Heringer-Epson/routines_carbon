@@ -65,7 +65,7 @@ class Compare_11fe(object):
         self.ax.tick_params(labelleft='off')                
 
     def load_data(self):
-
+        '''
         #Load original downbranch model of 11fe-05bl paper.
         case_folder = path_tardis_output + '11fe_default_L-scaled/'
         fname = ('velocity_start-12400_loglum-' + self.L + '_line_interaction'
@@ -92,7 +92,21 @@ class Compare_11fe(object):
         with open(fullpath, 'r') as inp:
             self.pkl_syn_macr_new = cPickle.load(inp)    
        
-       
+        '''
+
+        case_folder = path_tardis_output + '11fe_test_5.9d/'
+        fname = 'Mg-0.1_loglum-8.505_Ca-5.0'
+        fullpath = case_folder + fname + '/' + fname + '.pkl'          
+        with open(fullpath, 'r') as inp:
+            self.pkl_syn_macr_new = cPickle.load(inp)  
+
+        #Load new stratified downbranch model.
+        case_folder = path_tardis_output + '11fe_test_5.9d/'
+        fname = 'loglum-8.505'                  
+        fullpath = case_folder + fname + '/' + fname + '.pkl'          
+        with open(fullpath, 'r') as inp:
+            self.pkl_syn_down_new = cPickle.load(inp)  
+
         #Load observed spectrum. 
         fullpath = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'\
                     + 'observational_spectra/2011fe/2011_08_28.pkl')
@@ -101,8 +115,8 @@ class Compare_11fe(object):
 
     def plot_spectra(self):
         
-        w_syn_down_orig = self.pkl_syn_down_orig['wavelength_corr']
-        f_syn_down_orig = self.pkl_syn_down_orig['flux_smoothed']
+        #w_syn_down_orig = self.pkl_syn_down_orig['wavelength_corr']
+        #f_syn_down_orig = self.pkl_syn_down_orig['flux_smoothed']
 
         w_syn_down_new = self.pkl_syn_down_new['wavelength_corr']
         f_syn_down_new = self.pkl_syn_down_new['flux_smoothed']
@@ -112,10 +126,9 @@ class Compare_11fe(object):
 
         w_obs = self.pkl_obs['wavelength_corr']
         f_obs = self.pkl_obs['flux_smoothed']        
-        
        
-        self.ax.plot(w_syn_down_orig, f_syn_down_orig, ls='-', lw=2.,
-                     color='b', label='Original downbranch model')
+        #self.ax.plot(w_syn_down_orig, f_syn_down_orig, ls='-', lw=2.,
+        #             color='b', label='Original downbranch model')
         
         self.ax.plot(w_syn_down_new, f_syn_down_new, ls='-', lw=2.,
                      color='c', label='New downbranch model')
