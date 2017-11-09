@@ -14,6 +14,12 @@ from matplotlib.ticker import MultipleLocator
 from astropy import units as u, constants
 
 c = constants.c.to('angstrom/s').value
+c_kms = constants.c.to('km/s').value
+
+def wav2vel(wav_rest, wav):
+    return c_kms / 1.e3 * ((wav / wav_rest)**2. - 1.) / ((wav / wav_rest)**2. + 1.)
+
+
 
 def nu2wav(hz):
     return c / hz
@@ -142,7 +148,7 @@ class Compare_Interaction_Level(object):
         
         for j in range(len(self.v_inner)):
             self.C_level_dens.append(lvl_dens.loc[6,1,10][j]
-                                     + lvl_dens.loc[6,1,10][j])
+                                     + lvl_dens.loc[6,1,11][j])
         self.C_level_dens = np.array(self.C_level_dens)        
         
     def retrieve_C_interaction(self):
@@ -155,7 +161,9 @@ class Compare_Interaction_Level(object):
         fpath_pkl = self.hdf.split('.hdf')[0] + '.pkl'
         with open(fpath_pkl) as inp:
             pkl = cPickle.load(inp)
-            self.v_measured = pkl['velocity_fC']
+            v_measured = pkl['velocity_fC']
+            w_max_red = pkl['wavelength_maxima_red_fC']
+            print wav2vel(6580., w_max_red) * (-1000.)
         
         #Velocity from shell where C_II at lvls 10-11 is largest.
         self.v_level = self.v_inner[self.C_level_dens.argmax()]
@@ -163,7 +171,7 @@ class Compare_Interaction_Level(object):
         #Velocity from shell where number of trough forming interactions is largest.
         self.v_inter = self.v_inner[self.C_inter.argmax()]
 
-        print self.v_measured * (-1000.), self.v_level, self.v_inter, sum(self.C_inter)
+        print v_measured * (-1000.), self.v_level, self.v_inter, sum(self.C_inter)
 
     def make_plot(self):
 

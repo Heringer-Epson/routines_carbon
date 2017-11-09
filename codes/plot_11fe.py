@@ -122,7 +122,7 @@ class Plot_11fe_Sequence(object):
         plt.close()    
 
 if __name__ == '__main__':
-    Plot_11fe_Sequence(show_fig=True, save_fig=True)
+    Plot_11fe_Sequence(show_fig=True, save_fig=False)
     
 
           
