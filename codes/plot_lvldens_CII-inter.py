@@ -218,16 +218,19 @@ class Compare_Interaction_Level(object):
         
 if __name__ == '__main__': 
 
-    case_folder = path_tardis_output + '11fe_default_L-scaled_UP/'
-    L_list = ['8.942', '9.063', '9.243', '9.544']
-    #L_list = ['9.544']
-    f1 = 'line_interaction-downbranch_loglum-'
-    f2 = '_velocity_start-7850_time_explosion-19.1'
-    syn_list = [case_folder + (f1 + L + f2) + '/' + (f1 + L + f2) + '.hdf'
-                for L in L_list]
+    case_folder = path_tardis_output + '11fe_default_L-scaled/'
+    L_list = ['9.041', '9.362', '9.505', '9.544']
+    t_list = ['9.0', '12.1', '16.1', '19.1']
+    v_list = ['11300', '10700', '9000', '7850']
+    f1 = 'velocity_start-'
+    f2 = '_loglum-'
+    f3 = '_line_interaction-downbranch_time_explosion-'
+    syn_list = [case_folder + (f1 + v + f2 + L + f3 + t) + '/'
+                + (f1 + v + f2 + L + f3 + t) + '.hdf'
+                for (v, L, t) in zip(v_list, L_list, t_list)]
     
     for fpath in syn_list:
-        Compare_Interaction_Level(hdf=fpath, show_fig=False, save_fig=False)
+        Compare_Interaction_Level(hdf=fpath, show_fig=True, save_fig=False)
 
 
 

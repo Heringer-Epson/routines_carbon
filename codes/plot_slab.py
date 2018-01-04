@@ -228,10 +228,10 @@ if __name__ == '__main__':
 
     save_fig = True
     
-    case_folder = path_tardis_output + '11fe_default_L-scaled_UP/'
+    case_folder = path_tardis_output + '11fe_default_L-scaled/'
     L_list = ['8.942', '9.063', '9.243', '9.544']
-    f1 = 'line_interaction-downbranch_loglum-'
-    f2 = '_velocity_start-7850_time_explosion-19.1'
+    f2 = '_line_interaction-downbranch_time_explosion-19.1'
+    f1 = 'velocity_start-7850_loglum-'
     syn_list = [case_folder + (f1 + L + f2) + '/' + (f1 + L + f2) + '.pkl'
                 for L in L_list]
 
