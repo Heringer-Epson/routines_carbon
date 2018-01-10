@@ -31,9 +31,10 @@ marker = ['s', 'p', '^', 'o', 'D']
 vel_bin = np.arange(7100, 23101, 200) * u.km / u.s
 vel_avg = (vel_bin.value[0:-1] + vel_bin.value[1:]) / 2.
 
-
 mark_velocities = [12500., 13300., 16000.] * u.km / u.s
 vel_markers = ['x', '+']
+
+fs = 20
 
 class Make_Slab(object):
     """Runs a TARDIS simulation with a specified density profile to analyse and
@@ -74,7 +75,6 @@ class Make_Slab(object):
         self.lvl = None
         self.ion_II = None
         self.ion_III = None
-        self.fs = 26
         self.cbar_range = 1.e4
 
         #Make part of label string containing level info.
@@ -96,22 +96,22 @@ class Make_Slab(object):
 
         
         
-        self.ax_top.set_xlabel(x_label_top, fontsize=self.fs)
-        self.ax_top.set_ylabel(y_label_top, fontsize=self.fs)
+        self.ax_top.set_xlabel(x_label_top, fontsize=fs)
+        self.ax_top.set_ylabel(y_label_top, fontsize=fs)
         self.ax_top.set_yscale('log')
         self.ax_top.set_xlim(8500., 15000.)
         self.ax_top.set_ylim(1.e-13, 1.e-10)
-        self.ax_top.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)       
-        self.ax_top.tick_params(axis='x', which='major', labelsize=self.fs, pad=8)
+        self.ax_top.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
+        self.ax_top.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax_top.tick_params('both', length=8, width=1, which='major')
         self.ax_top.tick_params('both', length=4, width=1, which='minor')
         self.ax_top.xaxis.set_minor_locator(MultipleLocator(500.))
         self.ax_top.xaxis.set_major_locator(MultipleLocator(1000.)) 
         
-        self.ax_bot.set_xlabel(x_label_bot, fontsize=self.fs)
-        self.ax_bot.set_ylabel(y_label_bot, fontsize=self.fs)
-        self.ax_bot.tick_params(axis='y', which='major', labelsize=self.fs, pad=8)       
-        self.ax_bot.tick_params(axis='x', which='major', labelsize=self.fs, pad=8)
+        self.ax_bot.set_xlabel(x_label_bot, fontsize=fs)
+        self.ax_bot.set_ylabel(y_label_bot, fontsize=fs)
+        self.ax_bot.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
+        self.ax_bot.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax_bot.minorticks_off()
         self.ax_bot.tick_params('both', length=8, width=1, which='major')
         self.ax_bot.tick_params('both', length=4, width=1, which='minor')    
@@ -155,10 +155,10 @@ class Make_Slab(object):
         for i in range(len(self.syn_list)):
 
             time = float(t_list[i]) * u.day
+            v = self.D[str(i) + '_vinner']
             
             ##Unbinned
-            
-            v = self.D[str(i) + '_vinner']
+            '''
             r = v.to(u.cm / u.s) * time.to(u.s)    
             vol = 4. / 3. * np.pi * r**3.
             vol_step = np.diff(vol)            
@@ -172,6 +172,7 @@ class Make_Slab(object):
             mass_step = np.multiply(vol_step, avg_dens).to(u.solMass)
  
             self.D[str(i) + '_lvlmass'] = mass_step    
+            '''
             
             ##binned
 
@@ -210,32 +211,37 @@ class Make_Slab(object):
             mass_step = np.multiply(vol_step, avg_dens).to(u.solMass)
             totmass_step = np.multiply(vol_step, avg_totdens).to(u.solMass)
 
-            self.D[str(i) + '_lvlmass2'] = mass_step    
-            self.D[str(i) + '_totmass'] = totmass_step    
+            #Apply conditions:
+            #Condition 1: bin does not include photosphere. This is to avoid
+            #an incomplete bin, since number of particles is not taken into
+            #account below the photosphere.
+            #Condition 2: simply to remove vertical data points when plotting
+            #in log scale.
+            v_inner = self.D[str(i) + '_vinner'].value
+            conditions = (((vel_avg < v_inner[0] - 100.)
+                          | (vel_avg > v_inner[0] + 100.))
+                          & (mass_step > 1.e-15 * u.solMass))
+
+            self.D[str(i) + '_vel'] = vel_avg[conditions]    
+            self.D[str(i) + '_lvlmass2'] = mass_step[conditions]    
+            self.D[str(i) + '_totmass'] = totmass_step[conditions]   
             
-            #print sum(totmass_step)
-            
+            #print totmass_step
 
     def plotting_top(self):
 
         for i in range(len(self.syn_list)):
         
-            condition = (self.D[str(i) + '_lvlmass2'] > 1.e-15 * u.solMass)
-            x = vel_avg[condition]
-            y = self.D[str(i) + '_lvlmass2'][condition]
-            
+            #unbinned.
+            #self.ax_top.plot(
+            #  self.D[str(i) + '_vinner'][1:-1], self.D[str(i) + '_lvlmass'][1::],
+            #  ls='-', lw=2., marker=marker[i], markersize=8., color=color[i],
+            #  label = r'$\rm{t_{exp}\ =\ ' + t_list[i] + '\ \mathrm{d}}$')
+
             self.ax_top.plot(
-              self.D[str(i) + '_vinner'][1:-1], self.D[str(i) + '_lvlmass'][1::],
+              self.D[str(i) + '_vel'], self.D[str(i) + '_lvlmass2'],
               ls='-', lw=2., marker=marker[i], markersize=8., color=color[i],
               label = r'$\rm{t_{exp}\ =\ ' + t_list[i] + '\ \mathrm{d}}$')
-
-            self.ax_top.plot(
-              x, y,
-              ls='-', lw=2., marker=marker[i], markersize=8., color=color[i],
-              alpha=0.2)
-
-        #print self.D[str(i) + '_vinner'][1:-1], self.D[str(i) + '_lvlmass']
-        #print vel_avg, self.D[str(i) + '_lvlmass2']
         
         self.ax_top.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
                            labelspacing=0.05, loc=2) 
@@ -335,7 +341,7 @@ class Make_Slab(object):
                     
         cbar.set_ticks(ticks)
         cbar.set_ticklabels(tick_labels)
-        cbar.ax.tick_params(width=1, labelsize=self.fs)
+        cbar.ax.tick_params(width=1, labelsize=fs)
     
         
         #Make label string containing the denominator.
@@ -344,7 +350,7 @@ class Make_Slab(object):
         label = (r'n$(\mathrm{' + self.el + '_{II}^{' + self.lvl_str + '}})'
                  + den_str)
                     
-        cbar.set_label(label, fontsize=self.fs)
+        cbar.set_label(label, fontsize=fs)
 
     def add_tracks_bot(self):
 
@@ -369,9 +375,9 @@ class Make_Slab(object):
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
-            plt.savefig(directory + 'Fig_11fe_trough_formation_bintest.pdf',
+            plt.savefig(directory + 'Fig_11fe_trough_formation.pdf',
                         format='pdf', dpi=360)
-            plt.savefig(directory + 'Fig_11fe_trough_formation_bintest.png',
+            plt.savefig(directory + 'Fig_11fe_trough_formation.png',
                         format='png', dpi=360)
 
     def dens2axis(self, dens):

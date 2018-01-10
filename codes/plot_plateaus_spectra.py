@@ -152,7 +152,7 @@ class Plateaus_Spectra(object):
 
         def get_fname(date, s1, s2): 
             t = str(int(round(float(date))))
-            case_folder = '11fe_' + t + 'd_C-plateaus_scaling_SN/'
+            case_folder = '11fe_' + t + 'd_C-plateaus_scaling/'
             fname = 'C-F2-' + s2 + '_C-F1-' + s1
             fname = case_folder + fname + '/' + fname + '.pkl'        
             return path_tardis_output + fname     

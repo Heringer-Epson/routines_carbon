@@ -122,7 +122,7 @@ class Plateaus_Plot(object):
         pEW_array, pEW_unc_array = [], []
         t = str(int(round(float(date))))
 
-        case_folder = '11fe_' + t + 'd_C-plateaus_scaling_SN/'
+        case_folder = '11fe_' + t + 'd_C-plateaus_scaling/'
         def get_fname(s1, s2): 
             fname = 'C-F2-' + s2 + '_C-F1-' + s1
             fname = case_folder + fname + '/' + fname + '.pkl'        

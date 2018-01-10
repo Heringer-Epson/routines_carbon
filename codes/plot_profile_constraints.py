@@ -14,6 +14,10 @@ from scipy.integrate import trapz, cumtrapz
 M_sun = const.M_sun.to('g').value
 
 mass_fractions = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00', '10.00']
+labels = [r'$\mathrm{0}$', r'$\mathrm{5\times 10^{-4}}$', r'$\mathrm{10^{-3}}$',
+          r'$\mathrm{2\times 10^{-3}}$', r'$\mathrm{5\times 10^{-3}}$',
+          r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
+          r'$\mathrm{5\times 10^{-2}}$', r'$\mathrm{10^{-1}}$']
 velocities = [7850., 9000., 10700., 11300., 12400., 13300., 16000.]
 
 fs = 26.
@@ -45,7 +49,7 @@ class Plot_Models(object):
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax.tick_params('both', length=8, width=1, which='major')
         self.ax.tick_params('both', length=4, width=1, which='minor')
-        self.ax.set_yticklabels(mass_fractions)
+        self.ax.set_yticklabels(labels)
         self.ax.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax.xaxis.set_major_locator(MultipleLocator(2000.))  
 
@@ -57,7 +61,7 @@ class Plot_Models(object):
 
     def add_patches(self):
         
-        color = 'm'
+        color = '#e41a1c'
         
         self.ax.add_patch(mpl.patches.Rectangle((13300., 0), 16000. - 13300., 4,
                           hatch='//', fill=False, snap=False, color=color, lw=3))
@@ -82,8 +86,7 @@ class Plot_Models(object):
 
     def add_texts(self):
        
-        string = '$t=6,\ 9\ \mathrm{and}\ 12\ \mathrm{days}$\n'\
-                 'req: $X(C)_{\mathrm{i}}=X(C)_{\mathrm{o}}$'
+        string = '$t=6,\ 9\ \mathrm{and}\ 12\ \mathrm{days}$'
         self.ax.text(
           14700., 2, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))

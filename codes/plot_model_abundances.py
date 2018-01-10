@@ -100,39 +100,41 @@ class Plot_Models(object):
           hatch='', fill=True, lw=0., color=color, alpha=0.3, zorder=1)) 
 
         #Constrained regions.
-        color = 'darkgray'
+        color = 'dimgray'
+        #color = 'gray'
+        #color = 'limegreen'
         
         self.ax_top.add_patch(
           mpl.patches.Rectangle((13300., 1.e-5), 16000. - 13300., 0.005,
-          hatch='None', fill=True, lw=0., color=color, zorder=1))
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3))
 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((13300., 0.05), 16000. - 13300., 1.1 - 0.05,
-          hatch='None', fill=True, lw=0., color=color, zorder=1))       
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3))       
 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((7850., 0.05), 13300. - 7850., 1.1 - 0.05,
-          hatch='None', fill=True, lw=0., color=color, zorder=1)) 
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3)) 
 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((5000., 0.005), 7850. - 5000., 1.1,
-          hatch='None', fill=True, lw=0., color=color, zorder=1)) 
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3)) 
 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((7850., 0.005), 9000. - 7850, 0.05 - 0.005,
-          hatch='None', fill=True, lw=0., color=color, zorder=1)) 
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3)) 
 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((9000., 0.005), 10700. - 9000., 0.05 - 0.005,
-          hatch='None', fill=True, lw=0., color=color, zorder=1)) 
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3)) 
                 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((10700., 0.005), 11300. - 10700., 0.05 - 0.005,
-          hatch='None', fill=True, lw=0., color=color, zorder=1)) 
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3)) 
                 
         self.ax_top.add_patch(
           mpl.patches.Rectangle((11300., 0.01), 12400. - 11300., 0.05 - 0.01,
-          hatch='None', fill=True, lw=0., color=color, zorder=1)) 
+          hatch='', fill=True, lw=0., color=color, zorder=1, alpha=0.3)) 
 
         #Allowed regions
         color = 'limegreen'
