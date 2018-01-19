@@ -20,30 +20,37 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-date_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])
-scales = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00',
-          '10.00', '20.00']
-          
-s1_list = ['0.00', '0.05', '0.1', '0.2', '0.5']
-s2_list = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00']
+date_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])        
 
 s1_list = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00']
 s2_list = ['0.2', '0.5', '1.00', '2.00', '5.00']
 
-#s1_list = ['0.1', '0.2', '0.5', '1.00', '2.00']
-#s2_list = ['0.1', '0.2', '0.5', '1.00', '2.00']
-
+s1_labels = [r'$\mathrm{0}$', r'$\mathrm{5\times 10^{-4}}$',
+             r'$\mathrm{10^{-3}}$', r'$\mathrm{2\times 10^{-3}}$',
+             r'$\mathrm{5\times 10^{-3}}$', r'$\mathrm{10^{-2}}$',
+             r'$\mathrm{2\times 10^{-2}}$', r'$\mathrm{5\times 10^{-2}}$']
+s1_labels = ['\mathrm{0}', '\mathrm{5\\times 10^{-4}}',
+             '\mathrm{10^{-3}}', '\mathrm{2\\times 10^{-3}}',
+             '\mathrm{5\\times 10^{-3}}', '\mathrm{10^{-2}}',
+             '\mathrm{2\\times 10^{-2}}', '\mathrm{5\\times 10^{-2}}']
+s2_labels = [r'$\mathrm{2\times 10^{-3}}$', r'$\mathrm{5\times 10^{-3}}$',
+             r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
+             r'$\mathrm{5\times 10^{-2}}$']
 
 N_s1 = len(s1_list)
 N_s2 = len(s2_list)
 Nd = len(date_list)
 
-#labels = ['0', '0.05', '0.1', '0.2', '0.5', '1', '2', '5', '10', '20']
-mass_fractions = np.asarray(scales).astype(float) * 0.01
-
 cmap_mock = plt.cm.get_cmap('seismic')
 cmap = cmaps.viridis
-Norm = colors.Normalize(vmin=0., vmax=N_s2 - 1.)
+#Two option of color schemes. The viridis one does not use the full color range
+#on purpose (yellow rejected). Set this by upper value - default=0.9
+palette = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33',
+          '#a65628', '#f781bf', '#999999']
+palette = [cmap(value) for value in np.arange(0., 0.901, 0.90 / (N_s2 - 1.))]
+##
+palette = palette[0:N_s2]          
+
 fs = 20.
 
 dist = (6.4e6 * u.pc).to(u.cm)
@@ -72,13 +79,13 @@ class Plateaus_Spectra(object):
         self.save_fig = save_fig   
             
         self.F = {}
-        self.F['fig'] = plt.figure(figsize=(24,12))
+        self.F['fig'] = plt.figure(figsize=(18,14))
         for j in range(Nd):
             for i in range(N_s1):
                 idx = j * N_s1 + i + 1
                 self.F['ax' + str(idx)] = plt.subplot(Nd, N_s1, idx)
         
-        self.F['fig'].subplots_adjust(left=0.08, right=0.85, bottom=0.12) 
+        self.F['fig'].subplots_adjust(left=0.08, right=0.85, bottom=0.135) 
         self.F['bar_ax'] = self.F['fig'].add_axes([0.87, 0.32, 0.02, 0.35])    
         
         plt.subplots_adjust(wspace=0.15, hspace=0.05)
@@ -88,11 +95,11 @@ class Plateaus_Spectra(object):
     def set_frame(self):
 
         #Make label.
-        x_label = (r'$X(\rm{C}) \ \mathrm{[\%]}$ at 7850 $\leq\ v \ \leq$'\
+        x_label = (r'$X(\rm{C})$ at 7850 $\leq\ v \ \leq$'\
                    r' 13300$ \ \mathrm{[km\ s^{-1}]}$')     
         y_label = r'$\mathrm{Relative \ f}_{\lambda}$'
 
-        self.F['fig'].text(0.35, 0.04, x_label, va='center',
+        self.F['fig'].text(0.35, 0.03, x_label, va='center',
                            rotation='horizontal', fontsize=fs)  
         self.F['fig'].text(0.02, 0.51, y_label, va='center',
                            rotation='vertical', fontsize=fs)  
@@ -102,7 +109,6 @@ class Plateaus_Spectra(object):
             for i in range(N_s1):
                 idx = str(j * N_s1 + i + 1)
 
-
                 self.F['ax' + idx].set_xlim(6200., 6550.)
                 self.F['ax' + idx].set_ylim(0.60, 1.15)
                 self.F['ax' + idx].tick_params(axis='y', which='major', labelsize=fs, pad=8)      
@@ -111,7 +117,7 @@ class Plateaus_Spectra(object):
                 self.F['ax' + idx].tick_params('both', length=8, width=1, which='major', pad=8)
                 self.F['ax' + idx].tick_params('both', length=4, width=1, which='minor', pad=8)
                 self.F['ax' + idx].xaxis.set_minor_locator(MultipleLocator(50.))
-                self.F['ax' + idx].xaxis.set_major_locator(MultipleLocator(100.))
+                self.F['ax' + idx].xaxis.set_major_locator(MultipleLocator(200.))
                 self.F['ax' + idx].yaxis.set_minor_locator(MultipleLocator(0.05))
                 self.F['ax' + idx].yaxis.set_major_locator(MultipleLocator(0.2)) 
                 self.F['ax' + idx].tick_params(labelleft='off')          
@@ -121,7 +127,7 @@ class Plateaus_Spectra(object):
                     self.F['ax' + idx].set_ylabel(y_label, fontsize=fs,
                                                   labelpad=10.)
                 if j == Nd - 1:
-                    x_label = r'$X(\rm{C})=' + s1_list[i] + '$'
+                    x_label = r'$X(\rm{C})=' + s1_labels[i] + '$'
                    
                     self.F['ax' + idx].set_xlabel(x_label, fontsize=fs,
                                                   labelpad=10.)                    
@@ -138,11 +144,7 @@ class Plateaus_Spectra(object):
 
                 for i in range(N_s1):
                     idx = str(j * N_s1 + i + 1)
-
-                    #self.F['ax' + idx].plot(
-                    #  pkl['wavelength_corr'], pkl['flux_smoothed'],
-                    #  color='k', ls='-', lw=3., zorder=2.)
-
+                    
                     flux_raw = pkl['flux_raw'] / pkl['norm_factor']
                     self.F['ax' + idx].plot(
                       pkl['wavelength_corr'], flux_raw,
@@ -167,22 +169,18 @@ class Plateaus_Spectra(object):
                         with open(fpath, 'r') as inp:
                             pkl = cPickle.load(inp)
 
-                            #self.F['ax' + idx].plot(
-                            #  pkl['wavelength_corr'], pkl['flux_smoothed'],
-                            #  color=cmap(Norm(k)), ls='-', lw=2., zorder=1.)                
-
                             flux_raw = pkl['flux_raw'] / pkl['norm_factor']
                             self.F['ax' + idx].plot(
                               pkl['wavelength_corr'], flux_raw,
-                              color=cmap(Norm(k)), ls='-', lw=2., zorder=1.)  
+                              color=palette[k], ls='-', lw=2., zorder=1.)  
 
 
     def make_colorbars(self):
 
-        color_disc = cmap(np.linspace(0, 1, N_s2))
-        cmap_D = cmap_mock.from_list('irrel', color_disc, N_s2)
+        cmap_D = cmap_mock.from_list('irrel', palette, N_s2)
         
-        aux_mappable = mpl.cm.ScalarMappable(cmap=cmap_D, norm=Norm)
+        Norm_mock = colors.Normalize(vmin=0., vmax=1.) 
+        aux_mappable = mpl.cm.ScalarMappable(cmap=cmap_D, norm=Norm_mock)
         aux_mappable.set_array([])
         aux_mappable.set_clim(vmin=-0.5, vmax=N_s2-0.5)
         cbar = plt.colorbar(aux_mappable, cax=self.F['bar_ax'])
@@ -191,13 +189,13 @@ class Plateaus_Spectra(object):
         cbar_label = (r'$X(\rm{C}) \ \mathrm{[\%]}$ at 13300 $\leq\ v \ \leq$'\
                       r' 16000$ \ \mathrm{[km\ s^{-1}]}$')
         cbar.set_label(cbar_label, fontsize=fs)     
-        cbar.set_ticklabels(s2_list)
+        cbar.set_ticklabels(s2_labels)
 
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
             plt.savefig(directory + 'Fig_11fe_C-plateaus-spectra.pdf',
-                        format='pdf', dpi=360)
+                        format='pdf', dpi=360, bbox_inches='tight')
 
     def run_make(self):
         self.set_frame()

@@ -21,6 +21,7 @@ labels = [r'$\mathrm{0}$', r'$\mathrm{5\times 10^{-4}}$', r'$\mathrm{10^{-3}}$',
 velocities = [7850., 9000., 10700., 11300., 12400., 13300., 16000.]
 
 fs = 26.
+fs2 = 32.
 
 class Plot_Models(object):
     '''Note, metallicity seems to have a nearly negligible impact on the
@@ -31,7 +32,7 @@ class Plot_Models(object):
         
         self.show_fig = show_fig
         self.save_fig = save_fig
-        self.fig = plt.figure(figsize=(16.,10.))
+        self.fig = plt.figure(figsize=(16.,16.))
         self.ax = plt.subplot(111) 
         
         self.run_make()
@@ -41,15 +42,15 @@ class Plot_Models(object):
         x_label = r'$v\ \ \rm{[km\ \ s^{-1}]}$'
         y_label = r'$X(\rm{C})$'
 
-        self.ax.set_xlabel(x_label, fontsize=fs)
-        self.ax.set_ylabel(y_label, fontsize=fs)
+        self.ax.set_xlabel(x_label, fontsize=fs2)
+        self.ax.set_ylabel(y_label, fontsize=fs2)
         self.ax.set_xlim(velocities[0], velocities[-1])
         self.ax.set_ylim(0, len(mass_fractions) - 1)
-        self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
-        self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
+        self.ax.set_yticklabels(labels)
+        self.ax.tick_params(axis='y', which='major', labelsize=fs2, pad=12)       
+        self.ax.tick_params(axis='x', which='major', labelsize=fs2, pad=12)
         self.ax.tick_params('both', length=8, width=1, which='major')
         self.ax.tick_params('both', length=4, width=1, which='minor')
-        self.ax.set_yticklabels(labels)
         self.ax.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax.xaxis.set_major_locator(MultipleLocator(2000.))  
 
@@ -86,9 +87,9 @@ class Plot_Models(object):
 
     def add_texts(self):
        
-        string = '$t=6,\ 9\ \mathrm{and}\ 12\ \mathrm{days}$'
+        string = '$t=5.9,\ 9\ \mathrm{and}\ 12.1\ \mathrm{days}$'
         self.ax.text(
-          14700., 2, string, color='k', fontsize=fs, ha='center', va='center',
+          14630., 2, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
         string = '$t=9\ \mathrm{days}$'
@@ -101,31 +102,31 @@ class Plot_Models(object):
           10700., 7.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=19$\n$\mathrm{days}$'
+        string = '$t=19.1$\n$\mathrm{days}$'
         self.ax.text(
-          8450., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
+          8410., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=16\ \mathrm{days}$'
+        string = '$t=16.1\ \mathrm{days}$'
         self.ax.text(
           9850., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=12\ \mathrm{days}$'
+        string = '$t=12.1\ \mathrm{days}$'
         self.ax.text(
           11000., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'), rotation=90)                                               
 
         string = '$t=9$\n$\mathrm{days}$'
         self.ax.text(
-          11800., 6, string, color='k', fontsize=fs, ha='center', va='center',
+          11850., 6, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w')) 
 
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
             plt.savefig(directory + 'Fig_model_constraints.pdf', format='pdf',
-                        dpi=360)
+                        dpi=360, bbox_inches='tight')
     
     def run_make(self):
         self.set_fig_frame()
