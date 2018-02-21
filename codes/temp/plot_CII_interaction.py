@@ -14,7 +14,7 @@ from matplotlib.ticker import MultipleLocator
 from retrieve_interactions import LastLineInteraction as LLI
 from astropy import units as u
 from astropy import constants as const
-                             
+
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
@@ -93,27 +93,27 @@ class Analyse_Iter(object):
 
         #Initialize variables:
         last_line_interaction_in_id = pd.read_hdf(
-          self.hdf_fname, '/simulation15/runner/last_line_interaction_in_id')
+          self.hdf_fname, '/simulation/runner/last_line_interaction_in_id')
         last_line_interaction_out_id = pd.read_hdf(
-          self.hdf_fname, '/simulation15/runner/last_line_interaction_out_id')
+          self.hdf_fname, '/simulation/runner/last_line_interaction_out_id')
         last_line_interaction_shell_id = pd.read_hdf(
-          self.hdf_fname, '/simulation15/runner/last_line_interaction_shell_id')
+          self.hdf_fname, '/simulation/runner/last_line_interaction_shell_id')
         output_nu = pd.read_hdf(
-          self.hdf_fname, '/simulation15/runner/output_nu')
+          self.hdf_fname, '/simulation/runner/output_nu')
         lines = pd.read_hdf(
-          self.hdf_fname, '/simulation15/plasma/lines')
+          self.hdf_fname, '/simulation/plasma/lines')
         model_lvl_dens = pd.read_hdf(
-          self.hdf_fname, '/simulation15/plasma/level_number_density')
+          self.hdf_fname, '/simulation/plasma/level_number_density')
         self.model_number_dens = pd.read_hdf(
-          self.hdf_fname, '/simulation15/plasma/number_density')        
+          self.hdf_fname, '/simulation/plasma/number_density')        
         self.model_t_rad = pd.read_hdf(
-          self.hdf_fname, '/simulation15/model/t_radiative').values   
+          self.hdf_fname, '/simulation/model/t_radiative').values   
         self.model_dens = pd.read_hdf(
-          self.hdf_fname, '/simulation15/plasma/density').values * u.g / u.cm**3
+          self.hdf_fname, '/simulation/plasma/density').values * u.g / u.cm**3
         abun = pd.read_hdf(
-          self.hdf_fname, '/simulation15/plasma/abundance')
+          self.hdf_fname, '/simulation/plasma/abundance')
         self.model_v_inner = (pd.read_hdf(
-          self.hdf_fname, '/simulation15/model/v_inner').values * u.cm / u.s).to(u.km / u.s)
+          self.hdf_fname, '/simulation/model/v_inner').values * u.cm / u.s).to(u.km / u.s)
         self.shell = np.arange(0, len(self.model_dens), 1)
 
         self.Q['X_C'] = []
@@ -213,9 +213,9 @@ class Analyse_Iter(object):
 
 if __name__ == '__main__':
 
+    fname = 'line_interaction-downbranch_excitation-dilute-lte_C-F2-1.00_C-F1-0.2'
     input_fpath = (
-      path_tardis_output + '05bl_default_L-scaled_extra0.01Fe/Fe0-+0.01_loglum'
-      + '-8.648_line_interaction-macroatom_velocity_start-7600_time_explosion-14.0')
+      path_tardis_output + '11fe_16d_C-best/' + fname)
     
     Analyse_Iter(fpath=input_fpath, show_fig=True, save_fig=False)
 
