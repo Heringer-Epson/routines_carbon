@@ -23,7 +23,7 @@ def make_bin(vel_read, dens_read, time, fb, cb):
     
     #Make coarse bins
     cb_step = cb.to(vu).value    
-    vel_cb = np.arange(7100, 23101, cb_step) * vu
+    vel_cb = np.arange(7100, 31101, cb_step) * vu
     vel_cb_center = (vel_cb.value[0:-1] + vel_cb.value[1:]) / 2.
 
     #Make finer bins.
@@ -48,7 +48,9 @@ def make_bin(vel_read, dens_read, time, fb, cb):
     for (v_inner, v_outer) in zip(vel_cb[0:-1], vel_cb[1:]):
         #Because of the smaller ineq. and array sizes, don't include last vel_fb.
         cb_condition = ((vel_fb[0:-1] >= v_inner) & (vel_fb[0:-1] < v_outer))
-        mass_cb.append(sum(mass_fb[cb_condition].value))
+        integrated_mass = sum(np.nan_to_num(mass_fb[cb_condition].value))
+        #print v_inner, v_outer, integrated_mass
+        mass_cb.append(integrated_mass)
 
     mass_cb = np.asarray(mass_cb) * mass_fb.unit
     

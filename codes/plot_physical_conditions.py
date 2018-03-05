@@ -35,7 +35,8 @@ v_05bl = ['8350', '8100', '7600', '6800', '3350']
 color = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
 marker = ['s', 'p', '^', 'o', 'D']
 
-mark_velocities = [12500., 13300., 16000.] * u.km / u.s
+#mark_velocities = [12500., 13300., 16000.] * u.km / u.s
+mark_velocities = [7850., 13300., 16000.] * u.km / u.s
 vel_markers = ['x', '+']
 
 fs = 20
@@ -43,16 +44,19 @@ fs = 20
 class Make_Slab(object):
     """Runs a TARDIS simulation with a specified density profile to analyse and
     plot how the ion fraction of a given element depends on the density and
-    temperature.    
+    temperature.
+    Paramters:
+    ion indicates the ionization state: 0 for neutral, 1 for singly ionized, etc.    
     """
     
-    def __init__(self, syn_list, syn_05bl, Z=6, lvl_list=[10, 11], 
+    def __init__(self, syn_list, syn_05bl, Z=6, ionization=1, transition=10, 
                  show_fig=True, save_fig=False):
         
         self.syn_list = syn_list
         self.syn_05bl = syn_05bl
         self.Z = Z
-        self.lvl_list = lvl_list
+        self.ionization = ionization
+        self.transition = transition
         self.show_fig = show_fig
         self.save_fig = save_fig      
         
@@ -77,29 +81,43 @@ class Make_Slab(object):
         self.atom_data_dir = os.path.join(os.path.split(tardis.__file__)[0],
           'data', 'kurucz_cd23_chianti_H_He.h5')
 
-        Z2el = {6: 'C', 14: 'Si', 26: 'Fe'}
-        self.el = Z2el[self.Z]
-
         self.sim = None
         self.lvl = None
-        self.ion_II = None
-        self.ion_III = None
-        self.cbar_range = 1.e4
+        self.ion = None
+        self.top_label = None
+        self.bot_label = None
+        self.fname = None
 
-        #Make part of label string containing level info.
-        if len(self.lvl_list) == 1:
-            self.lvl_str = str(self.lvl_list[0])
-        else:
-            self.lvl_str = str(self.lvl_list[0]) + '-' + str(self.lvl_list[-1])
+        self.cbar_range = 1.e4
+        self.mass_range = 1.e3
 
         self.run_make_slab()
+
+    def make_label(self):
+        #Make part of label string containing level info.
+        Z2el = {6: 'C', 14: 'Si', 26: 'Fe'}
+        ion2symbol = {0: 'I', 1: 'II', 2: 'III'}
+        transition2symbol = {None: '', 10: '1s^23s'}
+        transition2str = {None: '', 10: '_1s2-3s'}
+        
+        var_label = (
+          '\mathrm{' + Z2el[self.Z] + '_{' + ion2symbol[self.ionization] + '}'\
+          + '^{' + transition2symbol[self.transition] + '}}')       
+        
+        self.top_label = r'$m(' + var_label + ')\ \ \mathrm{[M_\odot]}$'
+        self.bot_label = (r'$\mathrm{n}(' + var_label + ')/'\
+                          + '\mathrm{n}(\mathrm{' + Z2el[self.Z] + '})$') 
+
+        #Make figure name.
+        self.fname = (
+          'Fig_conditions_' + Z2el[self.Z] + '_' + ion2symbol[self.ionization]\
+          + transition2str[self.transition]  + '.pdf')
 
     def set_fig_frame(self):
         """Define the configuration of the figure axes."""
 
         x_label_top = r'$v\ \ \rm{[km\ \ s^{-1}]}$'
-        y_label_top = (r'$m(\rm{' + self.el + '^{+}_{n=' + self.lvl_str + '}})'
-                       + '\ \ \mathrm{[M_\odot]}$')
+        y_label_top = self.top_label
 
         x_label_bot = r'$\rm{log}\ T\ \rm{[K]}$'
         y_label_bot = r'$\rm{log}\ \rho\ \rm{[g\ cm^{-3}]}$'       
@@ -108,7 +126,6 @@ class Make_Slab(object):
         self.ax_top.set_ylabel(y_label_top, fontsize=fs)
         self.ax_top.set_yscale('log')
         self.ax_top.set_xlim(8500., 15000.)
-        self.ax_top.set_ylim(1.e-14, 1.e-11)
         self.ax_top.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_top.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax_top.tick_params('both', length=8, width=1, which='major')
@@ -126,11 +143,12 @@ class Make_Slab(object):
 
     def retrieve_number_dens(self):
         
+        #Iterate over simulations.
         for i, syn in enumerate(self.syn_list):
             
-            self.D[str(i) + '_lvldens'] = []
-            self.D[str(i) + '_Cdens'] = []
+            self.D[str(i) + '_eldens'] = []
             self.D[str(i) + '_iondens'] = []
+            self.D[str(i) + '_lvldens'] = []
             
             lvldens = pd.read_hdf(
               syn + '.hdf', '/simulation/plasma/level_number_density')     
@@ -144,21 +162,27 @@ class Make_Slab(object):
             self.D[str(i) + '_density'] = (pd.read_hdf(
               syn + '.hdf', '/simulation/plasma/density')).values / u.cm**3 * u.g 
 
+            #Iterate over shells.
             for j in range(len(self.D[str(i) + '_vinner'])):
+
+                #Get el, ion and lvl number density density per shell.
+                self.D[str(i) + '_eldens'].append(numdens.loc[self.Z][j])
+                self.D[str(i) + '_iondens'].append(
+                  iondens.loc[self.Z,self.ionization][j])
                
-                #Get level density per shell.
-                lvl_dens_app = 0.
-                for level in self.lvl_list:
-                    lvl_dens_app += lvldens.loc[self.Z,1,level][j]                
-                
-                self.D[str(i) + '_lvldens'].append(lvl_dens_app)                
-                #Either way below leads to the same answer.
-                self.D[str(i) + '_Cdens'].append(numdens.loc[self.Z][j])
-                #self.D[str(i) + '_Cdens'].append(sum(iondens.loc[self.Z][j]))
-                #print i, (lvldens.loc[6,1,10][j] + lvldens.loc[6,1,11][j]) / sum(iondens.loc[6][j])
-                #print i, (lvldens.loc[6,1,10][j] + lvldens.loc[6,1,11][j]) / numdens.loc[6][j]
+                if self.transition is not None:
+                    self.D[str(i) + '_lvldens'].append(
+                      lvldens.loc[self.Z,self.ionization,self.transition][j])                
+                else:
+                    self.D[str(i) + '_lvldens'].append(float('Nan'))                
+                        
+                #Test that sumation of ions density equals el density.
+                #print numdens.loc[self.Z][j] - sum(iondens.loc[self.Z][j])
+
+            #Convert lists to arrays.
+            self.D[str(i) + '_eldens'] = np.asarray(self.D[str(i) + '_eldens'])
+            self.D[str(i) + '_iondens'] = np.asarray(self.D[str(i) + '_iondens'])
             self.D[str(i) + '_lvldens'] = np.asarray(self.D[str(i) + '_lvldens'])
-            self.D[str(i) + '_Cdens'] = np.asarray(self.D[str(i) + '_Cdens'])
 
     def get_C_mass(self):
 
@@ -170,11 +194,12 @@ class Make_Slab(object):
             time = float(t_list[i]) * u.day
             A['vel'] = self.D[str(i) + '_vinner']
             A['dens'] = self.D[str(i) + '_density']
-            A['Cdens'] = self.D[str(i) + '_Cdens'] * u.g * u.u.to(u.g) * 12 / u.cm**3
-            A['lvldens'] = self.D[str(i) + '_lvldens'] * u.g * u.u.to(u.g) * 12 / u.cm**3 
+            A['eldens'] = self.D[str(i) + '_eldens'] * u.g * u.u.to(u.g) * 12. / u.cm**3.
+            A['iondens'] = self.D[str(i) + '_iondens'] * u.g * u.u.to(u.g) * 12. / u.cm**3.
+            A['lvldens'] = self.D[str(i) + '_lvldens'] * u.g * u.u.to(u.g) * 12. / u.cm**3. 
                         
             #Re-bin the data and compute masses.
-            for qtty in ['dens', 'Cdens', 'lvldens']:
+            for qtty in ['dens', 'eldens', 'iondens', 'lvldens']:
             
                 vel_cb,\
                 self.D['m_' + qtty + str(i) + '_cb'],\
@@ -188,24 +213,40 @@ class Make_Slab(object):
             self.vel_cb_center = (vel_cb.value[0:-1] + vel_cb.value[1:]) / 2.
 
     def plotting_top(self):
-
-        #Use any of the epochs to plot the mass per bin. Note that tihs is
-        #conserved because the explosion is in homologous expnasion.
-        #Note that earlier epochs will be cut below the photosphere.
-        self.ax_top.plot(
-          self.vel_cb_center, self.D['m_dens4_cb'] * 1.e-10,
-          ls='--', lw=2., marker='None', color='dimgray', alpha=0.5,
-          label=r'$\mathrm{10^{-10}}\times m_{\mathrm{total}}$')
-
+          
         for i in range(len(self.syn_list)):
             
+            if self.transition is not None:
+                qtty = self.D['m_lvldens' + str(i) + '_cb']
+            else:
+                qtty = self.D['m_iondens' + str(i) + '_cb']
+                
             #This prevents vertical drops in logscale.
-            cd = (self.D['m_lvldens' + str(i) + '_cb'] > 1.e-14 * u.solMass)
+            cd = (qtty > 1.e-18 * u.solMass)
             
             self.ax_top.plot(
-              self.vel_cb_center[cd], self.D['m_lvldens' + str(i) + '_cb'][cd],
+              self.vel_cb_center[cd], qtty[cd],
               ls='-', lw=2., marker=marker[i], markersize=8., color=color[i],
               label = r'$\rm{t_{exp}\ =\ ' + t_list[i] + '\ \mathrm{d}}$')
+
+        qtty_max = 10. ** int(np.log10(max(qtty.value)))
+        qtty_min = qtty_max / self.mass_range
+        self.ax_top.set_ylim(qtty_min, qtty_max)
+
+        #Use any of the epochs to plot the mass per bin. Note that this is
+        #conserved because the explosion is in homologous expnasion.
+        #Note that earlier epochs will be cut below the photosphere.
+        mass_max = 10. ** int(np.log10(max(self.D['m_dens4_cb'].value)))
+        mass_scaling = qtty_max / mass_max
+        str_scaling = str(int(np.log10(mass_scaling)))  
+
+        self.ax_top.plot(
+          self.vel_cb_center, self.D['m_dens4_cb'] * mass_scaling,
+          ls='--', lw=2., marker='None', color='dimgray', alpha=0.5,
+          label=r'$m_{\mathrm{total}} \times \mathrm{10^{' + str_scaling + '}}$')
+
+        self.ax_top.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1,
+                           labelspacing=-0.2, loc='best')
                             
     def make_input_files(self):
         
@@ -229,7 +270,7 @@ class Make_Slab(object):
     def collect_states(self):
         
         D = {}
-        ion_II, ion_III, lvl = [], [], []
+        ion, lvl = [], []
         rho_test, T_test = [], []
 
         for i, T in enumerate(self.temperature):
@@ -238,13 +279,17 @@ class Make_Slab(object):
             #print self.sim.plasma.t_rad, T * u.K
             
             for j in range(self.N_shells):
+                
+                #Retrieve lvl densities.
                 lvl_number = 0.
-                for level in self.lvl_list:
-                    lvl_number += (
-                      self.sim.plasma.level_number_density.loc[self.Z,1,level][j])
-
-                ion_II_number = self.sim.plasma.ion_number_density.loc[self.Z,1][j]
-                ion_III_number = self.sim.plasma.ion_number_density.loc[self.Z,2][j]
+                if self.transition is not None:
+                    lvl_number = self.sim.plasma.level_number_density.loc[
+                      self.Z,self.ionization,self.transition][j]
+                else:
+                    lvl_number = float('NaN')
+                
+                ion_number = self.sim.plasma.ion_number_density.loc[
+                  self.Z,self.ionization][j]
                 
                 #Testing that the density in the simulated ejecta actually
                 #corresponds to the requested density. Note that the
@@ -254,8 +299,7 @@ class Make_Slab(object):
                 total_ions = sum(self.sim.plasma.ion_number_density.loc[self.Z][j])
                                 
                 D['lvl_T' + str(i) + 'rho' + str(j)] = lvl_number / total_ions
-                D['ion_II_T' + str(i) + 'rho' + str(j)] = ion_II_number / total_ions
-                D['ion_III_T' + str(i) + 'rho' + str(j)] = ion_III_number / total_ions
+                D['ion_T' + str(i) + 'rho' + str(j)] = ion_number / total_ions
         
                 #Test to compare against plot.
                 #print T, self.sim.model.density[j], lvl_number / total_ions
@@ -264,14 +308,14 @@ class Make_Slab(object):
         for j in range(self.N_shells):
             for i in range(len(self.temperature)):
                 lvl.append(D['lvl_T' + str(i) + 'rho' + str(j)])
-                ion_II.append(D['ion_II_T' + str(i) + 'rho' + str(j)])
-                ion_III.append(D['ion_III_T' + str(i) + 'rho' + str(j)])
+                ion.append(D['ion_T' + str(i) + 'rho' + str(j)])
+                
                 rho_test.append(self.density[1::][j])
                 T_test.append(self.temperature[i])
                 
         self.lvl = np.array(lvl)
-        self.ion_II = np.array(ion_II)
-        self.ion_III = np.array(ion_III)
+        self.ion = np.array(ion)
+        
         #Test to compare against plot.
         #idx_max = self.lvl.argmax()
         #print idx_max, rho_test[idx_max], T_test[idx_max]
@@ -280,9 +324,14 @@ class Make_Slab(object):
 
         cmap = plt.get_cmap('Greys')
         
-        qtty_max = 10. ** int(np.log10(max(self.lvl)))
+        if self.transition is None:
+            qtty = self.ion
+        else:
+            qtty = self.lvl            
+        
+        qtty_max = 10. ** int(np.log10(max(qtty)))
         qtty_min = qtty_max / self.cbar_range
-        qtty = np.reshape(self.lvl, (self.N_shells, len(self.temperature)))
+        qtty = np.reshape(qtty, (self.N_shells, len(self.temperature)))
             
         #imshow
         _im = self.ax_bot.imshow(
@@ -325,17 +374,8 @@ class Make_Slab(object):
         cbar.set_ticks(ticks)
         cbar.set_ticklabels(tick_labels)
         cbar.ax.tick_params(width=1, labelsize=fs)
-    
-        #Make label string containing the denominator.
-        den_str = '/\mathrm{n}(\mathrm{' + self.el + '})$'
-        
-        #label = (r'n$(\mathrm{' + self.el + '_{II}^{' + self.lvl_str + '}})'
-        #         + den_str)
-
-        label = (r'n$(\mathrm{' + self.el + '^{+}_{n=' + self.lvl_str + '}})'
-                 + den_str)
                     
-        cbar.set_label(label, fontsize=fs)
+        cbar.set_label(self.bot_label, fontsize=fs)
 
     def add_tracks_bot(self):
 
@@ -382,13 +422,14 @@ class Make_Slab(object):
                       color='m', ls='None', marker='*',
                       markersize=8.)        
         '''
+    
     def print_table(self):
         directory = './../OUTPUT_FILES/TABLES/'
         with open(directory + 'tb_masses.txt', 'w') as out:
 
             for i in range(len(self.syn_list)):
                 line1 = (
-                  '\multirow{3}{*}{' + t_list[i] + '} & $m_{\\rm{tot}}$ & $'
+                  '\multirow{4}{*}{' + t_list[i] + '} & $m_{\\rm{tot}}$ & $'
                   + format(self.D['m_dens' + str(i) + '_i'].value, '.3f')
                   + '$ & $'
                   + format(self.D['m_dens' + str(i) + '_o'].value, '.3f')
@@ -397,13 +438,21 @@ class Make_Slab(object):
                   + '$') 
                 line2 = (
                   ' & $m(\\rm{C})$ & $'
-                  + format(self.D['m_Cdens' + str(i) + '_i'].value, '.4f')
+                  + format(self.D['m_eldens' + str(i) + '_i'].value, '.4f')
                   + '$ & $'
-                  + format(self.D['m_Cdens' + str(i) + '_o'].value, '.4f')
+                  + format(self.D['m_eldens' + str(i) + '_o'].value, '.4f')
                   + '$ & $'
-                  + format(self.D['m_Cdens' + str(i) + '_t'].value, '.4f')
+                  + format(self.D['m_eldens' + str(i) + '_t'].value, '.4f')
                   + '$ \\\\\n') 
                 line3 = (
+                  ' & $m(\\rm{C})$ & $'
+                  + format(self.D['m_iondens' + str(i) + '_i'].value, '.4f')
+                  + '$ & $'
+                  + format(self.D['m_iondens' + str(i) + '_o'].value, '.4f')
+                  + '$ & $'
+                  + format(self.D['m_iondens' + str(i) + '_t'].value, '.4f')
+                  + '$ \\\\\n')                
+                line4 = (
                   ' & $10^{11}\\times m(\\rm{C^{+}_{n=10}})$ & $'
                   + format(self.D['m_lvldens' + str(i) + '_i'].value * 1.e11, '.3f')
                   + '$ & $'
@@ -421,14 +470,14 @@ class Make_Slab(object):
                 out.write(line1)
                 out.write(line2)
                 out.write(line3)
+                out.write(line4)
                 if i != 4:
                     out.write('\\hline')
 
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
-            plt.savefig(directory + 'Fig_physical_conditions.pdf',
-                        format='pdf', dpi=360)
+            plt.savefig(directory + self.fname, format='pdf', dpi=360)
 
     def dens2axis(self, dens):
         #Note the first shell is for density[1], not [0]
@@ -449,6 +498,7 @@ class Make_Slab(object):
         os.remove('./inputs/density.dat')
         
     def run_make_slab(self):
+        self.make_label()
         self.set_fig_frame()
         self.retrieve_number_dens()
         self.get_C_mass()
@@ -458,8 +508,9 @@ class Make_Slab(object):
         self.collect_states()
         self.plotting_bot()
         self.add_tracks_bot()
-        if self.save_fig:
-            self.print_table()
+        #if self.save_fig:
+        #    if self.transition is not None:
+        #        self.print_table()
         plt.tight_layout()
         self.save_figure()
         if self.show_fig:
@@ -497,7 +548,15 @@ if __name__ == '__main__':
     syn_05bl = [case_folder + (f1 + v + f2 + L + f3 + t) + '/'
                      + (f1 + v + f2 + L + f3 + t)
                      for (v, L, t) in zip(v_05bl, L_05bl, t_05bl)]    
-    
-    Make_Slab(syn_list, syn_05bl, Z=6, lvl_list=[10], show_fig=True,
-              save_fig=True)
 
+    #Make_Slab(syn_list, syn_05bl, Z=6, ionization=0, transition=10,
+    #          show_fig=True, save_fig=False)
+    
+    Make_Slab(syn_list, syn_05bl, Z=6, ionization=0, transition=10,
+              show_fig=False, save_fig=True)
+    Make_Slab(syn_list, syn_05bl, Z=6, ionization=0, transition=None,
+              show_fig=False, save_fig=True)
+    Make_Slab(syn_list, syn_05bl, Z=6, ionization=1, transition=10,
+              show_fig=False, save_fig=True)
+    Make_Slab(syn_list, syn_05bl, Z=6, ionization=1, transition=None,
+              show_fig=False, save_fig=True)

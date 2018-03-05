@@ -49,16 +49,18 @@ class Plot_Best(object):
         self.save_fig = save_fig   
             
         self.F = {}
-        self.F['fig'] = plt.figure(figsize=(8,18))        
+        self.F['fig'] = plt.figure(figsize=(8,14))        
         for j in range(Nd):
             idx = j + 1
             self.F['ax' + str(idx)] = plt.subplot(Nd, 1, idx)        
 
-        self.F['axins1'] = self.F['fig'].add_axes([0.66, 0.810, 0.22, 0.08])
-        self.F['axins2'] = self.F['fig'].add_axes([0.66, 0.645, 0.22, 0.08])
-        self.F['axins3'] = self.F['fig'].add_axes([0.66, 0.480, 0.22, 0.08])
-        self.F['axins4'] = self.F['fig'].add_axes([0.66, 0.312, 0.22, 0.08])
-        self.F['axins5'] = self.F['fig'].add_axes([0.66, 0.147, 0.22, 0.08])
+        self.F['axi_o1'] = self.F['fig'].add_axes([0.56, 0.775, 0.30, 0.115])
+        self.F['axi_o2'] = self.F['fig'].add_axes([0.56, 0.614, 0.30, 0.115])
+        self.F['axi_o3'] = self.F['fig'].add_axes([0.56, 0.452, 0.30, 0.115])
+        self.F['axi_o4'] = self.F['fig'].add_axes([0.56, 0.291, 0.30, 0.115])
+        self.F['axi_o5'] = self.F['fig'].add_axes([0.56, 0.130, 0.30, 0.115])
+
+        plt.subplots_adjust(hspace=0.03)
 
         self.run_make_best()
 
@@ -71,16 +73,13 @@ class Plot_Best(object):
         y_cbar_label = (r'pEW $\mathrm{[\AA]}$ of $\rm{C}\,\mathrm{II}$'\
                       + r'$ \ \lambda$6580')       
 
-        #self.F['fig'].text(
-        #  0.04, 0.6, y_label, va='center', rotation='vertical', fontsize=fs)
-
         self.F['ax3'].set_ylabel(y_label, fontsize=fs, labelpad=8)
 
         for j in range(Nd):
             idx = str(j + 1)        
         
-            self.F['ax' + idx].set_xlim(1500., 10000.)
-            self.F['ax' + idx].set_ylim(0., 3.5)      
+            self.F['ax' + idx].set_xlim(1500., 12000.)
+            self.F['ax' + idx].set_ylim(0., 4.5)      
             self.F['ax' + idx].tick_params(
               axis='y', which='major', labelsize=fs, pad=8)      
             self.F['ax' + idx].tick_params(
@@ -104,7 +103,7 @@ class Plot_Best(object):
         for j, date in enumerate(date_list):
             idx = str(j + 1)        
             
-            Add_Curves(self.F['ax' + idx], self.F['axins' + idx],
+            Add_Curves(self.F['ax' + idx], self.F['axi_o' + idx],
                        date, j).run_add_curves()  
             
     def save_figure(self):        
@@ -123,11 +122,11 @@ class Plot_Best(object):
 
 class Add_Curves(object):
     
-    def __init__(self, ax, axins, t_exp='16.1', idx=1):
+    def __init__(self, ax, axi_o, t_exp, idx=1):
         
         self.t_exp = t_exp        
         self.ax = ax
-        self.axins = axins
+        self.axi_o = axi_o
         self.idx = idx
         self.t = str(int(round(float(self.t_exp))))
         self.panel = ['a', 'b', 'c', 'd', 'e']
@@ -137,23 +136,30 @@ class Add_Curves(object):
         
     def set_fig_frame(self):
         """Define the configuration of the figure axes."""
-        self.axins.set_xlim(6200., 6550.)
-        self.axins.set_ylim(0.60, 1.15)
-        self.axins.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
-        self.axins.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
-        self.axins.minorticks_on()
-        self.axins.tick_params('both', length=8, width=1, which='major', pad=2)
-        self.axins.tick_params('both', length=4, width=1, which='minor', pad=2)
-        self.axins.xaxis.set_minor_locator(MultipleLocator(50.))
-        self.axins.xaxis.set_major_locator(MultipleLocator(100.))
-        self.axins.yaxis.set_minor_locator(MultipleLocator(0.05))
-        self.axins.yaxis.set_major_locator(MultipleLocator(0.2)) 
-        self.axins.tick_params(labelleft='off')          
-        
+
+        x_label_o = r'$\lambda \ \mathrm{[\AA}]}$'
+        x_label_n = r'$\lambda \ \mathrm{[\mu m}]}$'
+
+        #self.axi_o.set_xlabel(x_label_o, fontsize=fs - 4., labelpad=-2.)
+        self.axi_o.set_xlim(6200., 6550.)
+        self.axi_o.set_ylim(0.60, 1.15)
+        self.axi_o.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
+        self.axi_o.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
+        self.axi_o.minorticks_on()
+        self.axi_o.tick_params('both', length=8, width=1, which='major', pad=2)
+        self.axi_o.tick_params('both', length=4, width=1, which='minor', pad=2)
+        self.axi_o.xaxis.set_minor_locator(MultipleLocator(50.))
+        self.axi_o.xaxis.set_major_locator(MultipleLocator(150.))
+        self.axi_o.yaxis.set_minor_locator(MultipleLocator(0.05))
+        self.axi_o.yaxis.set_major_locator(MultipleLocator(0.2)) 
+        self.axi_o.tick_params(labelleft='off')          
+
     def add_texp_text(self):
-        self.ax.text(1750., 2.90, r'$t_{\rm{exp}}=' + self.t_exp + '\\ \\rm{d}$',
+        y_pos = 3.2
+            
+        self.ax.text(1750., y_pos, r'$t_{\rm{exp}}=' + self.t_exp + '\\ \\rm{d}$',
                      fontsize=20., horizontalalignment='left', color='k')
-        self.ax.text(1750., 2.35, r'$\mathbf{' + self.panel[self.idx] + '}$',
+        self.ax.text(1750., y_pos - 0.55, r'$\mathbf{' + self.panel[self.idx] + '}$',
                      fontsize=20., horizontalalignment='left', color='k')
 
     def load_and_plot_observational_spectrum(self):
@@ -161,19 +167,12 @@ class Add_Curves(object):
                      + 'observational_spectra/2011fe/')
         with open(directory + texp2date[self.t_exp] + '.pkl', 'r') as inp:
             pkl = cPickle.load(inp)
-            
-            flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
-    
-            self.ax.plot(pkl['wavelength_corr'], flux_raw ,
+            flux_raw = pkl['flux_raw'] / pkl['norm_factor']
+            self.ax.plot(pkl['wavelength_corr'], flux_raw,
                          color='k', ls='-', lw=3., zorder=2.,
                          label=r'$\mathrm{SN\ 2011fe}$')
-            self.axins.plot(pkl['wavelength_corr'], flux_raw ,
+            self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
                          color='k', ls='-', lw=3., zorder=2.)            
-
-        #Plot legend at top plot.
-        if self.idx == 0:
-            self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
-                           handletextpad=0.5, loc=9) 
 
         #Plot Si feature label.
         x = pkl['wavelength_minima_f7']
@@ -186,7 +185,7 @@ class Add_Curves(object):
 
         #Plot C feature label.
         x = pkl['wavelength_minima_f7'] + 220.
-        y = pkl['flux_minima_f7']       
+        y = pkl['flux_minima_f7']            
         
         self.ax.plot([x, x], [y + 0.7, y + 1.2], ls='-', marker='None',
                          color='grey', lw=2.)
@@ -194,6 +193,23 @@ class Add_Curves(object):
         self.ax.text(x, y + 1.4, r'C', fontsize=20.,
                      horizontalalignment='center', color='grey')
         
+        #Get measured pEW.
+        if np.isnan(pkl['pEW_fC']):
+            pkl['pEW_fC'], pkl['pEW_unc_fC'] = 0., 0.
+        
+        self.D['pEW_obs'] = pkl['pEW_fC']
+        self.D['unc_obs'] = pkl['pEW_unc_fC']        
+ 
+        #Plot observed spectra at top plot.
+        if self.idx == 0:
+            #self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
+            #               handletextpad=0.5, labelspacing=0, loc=2) 
+            self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
+                           handletextpad=0.5, labelspacing=0,
+                           bbox_to_anchor=(0.415, 0.905),
+                           bbox_transform=plt.gcf().transFigure) 
+
+
     def load_and_plot_synthetic_spectrum(self):
         
         def make_fpath(LI, XCi, XCo):
@@ -202,12 +218,11 @@ class Add_Curves(object):
             return (path_tardis_output + '11fe_' + self.t
                     + 'd_C-best/' + fname + '/' + fname + '.pkl')
             
-        #colors = [orange, purple, etc]
-        colors = ['#d95f02', '#7570b3', '#1b9e77']
+        #colors = ['#d95f02', '#7570b3', '#1b9e77']
+        colors = ['#7570b3']
         ls = ['-', ':', '--']
         for j, LI in enumerate(['downbranch', 'macroatom']):
-            for i, (XCi, XCo) in enumerate(zip(['0.00', '0.2'],
-                                               ['2.00', '1.00'])):
+            for i, (XCi, XCo) in enumerate(zip(['0.2'], ['1.00'])):
 
                 with open(make_fpath(LI, XCi, XCo), 'r') as inp:
                     pkl = cPickle.load(inp)
@@ -215,10 +230,11 @@ class Add_Curves(object):
                     flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
                     self.ax.plot(pkl['wavelength_corr'], flux_raw,
                                  color=colors[i], ls=ls[j], lw=2., zorder=1.)
-                    self.axins.plot(
-                      pkl['wavelength_corr'], flux_raw,
-                      color=colors[i], ls=ls[j], lw=2., zorder=1.)
 
+                    self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
+                                       color=colors[i], ls=ls[j], lw=2.,
+                                       zorder=1.)
+                 
     def run_add_curves(self):
         self.set_fig_frame()
         self.add_texp_text()

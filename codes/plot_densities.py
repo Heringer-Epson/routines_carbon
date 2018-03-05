@@ -10,7 +10,6 @@ from matplotlib.ticker import MultipleLocator
 from astropy import constants as const
 from astropy import units as u
 from scipy.integrate import trapz, cumtrapz
-from binning import make_bin
 
 M_sun = const.M_sun.to('g').value
 fs = 26.
@@ -120,7 +119,8 @@ class Plot_Models(object):
 
 
     def add_analysis_regions(self):
-        
+
+
         #Unconstrained regions
         color = '#bababa'
         alpha = 0.5

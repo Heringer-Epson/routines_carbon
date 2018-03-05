@@ -51,32 +51,38 @@ class Plateaus_Spectra(object):
         #Make adjustments depending on region of the spectra to be plotted.
         self.date_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])        
         self.Nd = len(self.date_list)
-
-        self.s1_list = [
-          '0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00']
-        self.s1_labels = [
-          r'$\mathrm{0}$', r'$\mathrm{5\times 10^{-4}}$', r'$\mathrm{10^{-3}}$',
-          r'$\mathrm{2\times 10^{-3}}$', r'$\mathrm{5\times 10^{-3}}$',
-          r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
-          r'$\mathrm{5\times 10^{-2}}$']        
-        self.s1_labels = [
-          '\mathrm{0}', '\mathrm{5\\times 10^{-4}}', '\mathrm{10^{-3}}',
-          '\mathrm{2\\times 10^{-3}}', '\mathrm{5\\times 10^{-3}}',
-          '\mathrm{10^{-2}}', '\mathrm{2\\times 10^{-2}}',
-          '\mathrm{5\\times 10^{-2}}']        
-        self.N_s1 = len(self.s1_list)
         
         if self.region == 'optical':
+
+            self.s1_list = [
+              '0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00']
+            self.s1_labels = [
+              '\mathrm{0}', '\mathrm{5\\times 10^{-4}}', '\mathrm{10^{-3}}',
+              '\mathrm{2\\times 10^{-3}}', '\mathrm{5\\times 10^{-3}}',
+              '\mathrm{10^{-2}}', '\mathrm{2\\times 10^{-2}}',
+              '\mathrm{5\\times 10^{-2}}']        
+
             self.s2_list = ['0.2', '0.5', '1.00', '2.00', '5.00']
             self.s2_labels = [
               r'$\mathrm{2\times 10^{-3}}$', r'$\mathrm{5\times 10^{-3}}$',
               r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
               r'$\mathrm{5\times 10^{-2}}$']
         elif self.region == 'NIR': 
+
+            self.s1_list = [
+              '0.00', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00', '10.00']
+            self.s1_labels = [
+              '\mathrm{0}', '\mathrm{10^{-3}}',
+              '\mathrm{2\\times 10^{-3}}', '\mathrm{5\\times 10^{-3}}',
+              '\mathrm{10^{-2}}', '\mathrm{2\\times 10^{-2}}',
+              '\mathrm{5\\times 10^{-2}}', '\mathrm{10^{-1}}']        
+
             self.s2_list = ['0.00', '1.00', '2.00', '5.00', '10.00']
             self.s2_labels = [
               r'$0$', r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
               r'$\mathrm{5\times 10^{-2}}$', r'$\mathrm{1\times 10^{-1}}$']
+        
+        self.N_s1 = len(self.s1_list)
         self.N_s2 = len(self.s2_list)
 
         #Set Figure.

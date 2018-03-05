@@ -44,141 +44,12 @@ texp2L = {'3.7': 0.08e9, '5.9': 0.32e9, '9.0': 1.1e9,
           '12.1': 2.3e9, '16.1': 3.2e9, '19.1': 3.5e9,
           '22.4': 3.2e9, '28.3': 2.3e9}
 
-class Add_Curves(object):
-    
-    def __init__(self, ax, axins, ax_bot, t_exp, idx, add_7d):
-        
-        self.t_exp = t_exp        
-        self.ax = ax
-        self.axins = axins
-        self.ax_bot = ax_bot
-        self.idx = idx
-        self.add_7d = add_7d
-        self.t = str(int(round(float(self.t_exp))))
-        self.panel = ['a', 'b', 'c', 'd', 'e']
-
-        self.pkl_list = []
-        self.D = {}
-        self.D['vel'], self.D['pEW'], self.D['unc'] = [], [], []
-        
-    def set_fig_frame(self):
-        """Define the configuration of the figure axes."""
-        self.axins.set_xlim(6200., 6550.)
-        self.axins.set_ylim(0.60, 1.15)
-        self.axins.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
-        self.axins.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
-        self.axins.minorticks_on()
-        self.axins.tick_params('both', length=8, width=1, which='major', pad=2)
-        self.axins.tick_params('both', length=4, width=1, which='minor', pad=2)
-        self.axins.xaxis.set_minor_locator(MultipleLocator(50.))
-        self.axins.xaxis.set_major_locator(MultipleLocator(100.))
-        self.axins.yaxis.set_minor_locator(MultipleLocator(0.05))
-        self.axins.yaxis.set_major_locator(MultipleLocator(0.2)) 
-        self.axins.tick_params(labelleft='off')          
-        
-    def add_texp_text(self):
-        self.ax.text(1750., 2.90, r'$t_{\rm{exp}}=' + self.t_exp + '\\ \\rm{d}$',
-                     fontsize=20., horizontalalignment='left', color='k')
-        self.ax.text(1750., 2.35, r'$\mathbf{' + self.panel[self.idx] + '}$',
-                     fontsize=20., horizontalalignment='left', color='k')
-
-    def load_and_plot_observational_spectrum(self):
-        directory = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'
-                     + 'observational_spectra/2011fe/')
-        with open(directory + texp2date[self.t_exp] + '.pkl', 'r') as inp:
-            pkl = cPickle.load(inp)
-            flux_raw = pkl['flux_raw'] / pkl['norm_factor']
-            self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                         color='k', ls='-', lw=3., zorder=2.,
-                         label=r'$\mathrm{SN\ 2011fe}$')
-            self.axins.plot(pkl['wavelength_corr'], flux_raw,
-                         color='k', ls='-', lw=3., zorder=2.)            
-
-        #Plot Si feature label.
-        x = pkl['wavelength_minima_f7']
-        y = pkl['flux_minima_f7']
-        self.ax.plot([x, x], [y + 0.4, y + 0.8], ls='-', marker='None',
-                         color='grey', lw=2.)
-
-        self.ax.text(x, y + 1., r'Si', fontsize=20.,
-                         horizontalalignment='center', color='grey')
-
-        #Plot C feature label.
-        x = pkl['wavelength_minima_f7'] + 220.
-        y = pkl['flux_minima_f7']            
-        
-        self.ax.plot([x, x], [y + 0.7, y + 1.2], ls='-', marker='None',
-                         color='grey', lw=2.)
-
-        self.ax.text(x, y + 1.4, r'C', fontsize=20.,
-                     horizontalalignment='center', color='grey')
-        
-        #Get measured pEW.
-        if np.isnan(pkl['pEW_fC']):
-            pkl['pEW_fC'], pkl['pEW_unc_fC'] = 0., 0.
-        
-        self.D['pEW_obs'] = pkl['pEW_fC']
-        self.D['unc_obs'] = pkl['pEW_unc_fC']        
- 
-        #Add spectrum at 7.2days for comparison.
-        if self.add_7d:
-            with open(directory + '2011_08_30.pkl', 'r') as inp:
-                pkl = cPickle.load(inp)
-                flux_raw = pkl['flux_raw'] / pkl['norm_factor']
-                self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                             color='g', ls='-', lw=3., zorder=2.,
-                             alpha=0.3, label=r'@7.2 days')
-                self.axins.plot(pkl['wavelength_corr'], flux_raw,
-                                color='g', ls='-', lw=3.,
-                                alpha=0.3, zorder=2.)  
-
-        #Plot observed spectra at top plot.
-        if self.idx == 0:
-            self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
-                           handletextpad=0.5, labelspacing=0, loc=9) 
-
-    def load_and_plot_synthetic_spectrum(self):
-        
-        def make_fpath(v):
-            lum = lum2loglum(texp2L[self.t_exp])
-            fname = 'loglum-' + lum + '_v_stop_F1-' + v
-            return (path_tardis_output + '11fe_' + self.t
-                    + 'd_C-scan/' + fname + '/' + fname + '.pkl')
-                    
-        for i, v in enumerate(v_stop):
-            try:
-                with open(make_fpath(v), 'r') as inp:
-                    pkl = cPickle.load(inp)
-                    self.pkl_list.append(pkl)
-                    flux_raw = pkl['flux_raw'] / pkl['norm_factor']
-                    self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                                 color=cmap(Norm(i)), ls='-', lw=2.,
-                                 zorder=1.)
-                    self.axins.plot(pkl['wavelength_corr'], flux_raw,
-                                       color=cmap(Norm(i)), ls='-', lw=2.,
-                                       zorder=1.)
-                    pEW = pkl['pEW_fC']
-                    if np.isnan(pEW):
-                        pEW = 0.
-                    self.D['vel'].append(float(v))
-                    self.D['pEW'].append(pEW)
-                    self.D['unc'].append(pkl['pEW_unc_fC'])                   
-            except:
-                self.D['vel'].append(float(v))
-                self.D['pEW'].append(np.nan)
-                self.D['unc'].append(np.nan)
-                 
-    def run_make_slab(self):
-        self.set_fig_frame()
-        self.add_texp_text()
-        self.load_and_plot_observational_spectrum()
-        self.load_and_plot_synthetic_spectrum()
-        return self.D
-
 class Make_Scan(object):
     
-    def __init__(self, compare_7d=False, show_fig=True, save_fig=False):
+    def __init__(self, yscale='linear', compare_7d=False,
+                 show_fig=True, save_fig=False):
 
+        self.yscale = yscale
         self.show_fig = show_fig
         self.save_fig = save_fig
         self.compare_7d = compare_7d         
@@ -228,16 +99,21 @@ class Make_Scan(object):
                        fontsize=fs)     
         cbar.set_ticklabels(v_stop_label)
 
-        self.master['ax_ins_0'] = self.fig.add_axes([0.66, 0.810, 0.22, 0.08])
-        self.master['ax_ins_1'] = self.fig.add_axes([0.66, 0.684, 0.22, 0.08])
-        self.master['ax_ins_2'] = self.fig.add_axes([0.66, 0.558, 0.22, 0.08])
-        self.master['ax_ins_3'] = self.fig.add_axes([0.66, 0.430, 0.22, 0.08])
-        self.master['ax_ins_4'] = self.fig.add_axes([0.66, 0.304, 0.22, 0.08])
+        if self.yscale == 'linear':
+            xloc = 0.56
+        elif self.yscale == 'log':
+            xloc = 1.
+
+        self.master['axi_o0'] = self.fig.add_axes([xloc, 0.800, 0.30, 0.09])
+        self.master['axi_o1'] = self.fig.add_axes([xloc, 0.674, 0.30, 0.09])
+        self.master['axi_o2'] = self.fig.add_axes([xloc, 0.548, 0.30, 0.09])
+        self.master['axi_o3'] = self.fig.add_axes([xloc, 0.420, 0.30, 0.09])
+        self.master['axi_o4'] = self.fig.add_axes([xloc, 0.294, 0.30, 0.09])
         
         for i, time in enumerate(t_exp_list):
             idx = str(i)
             self.master[time] = Add_Curves(
-              self.master['ax_' + idx], self.master['ax_ins_' + idx],
+              self.master['ax_' + idx], self.master['axi_o' + idx],
               self.master['ax_bot'], time, i, compare_7d).run_make_slab()        
     
         self.run_make_scan()
@@ -251,28 +127,35 @@ class Make_Scan(object):
         y_cbar_label = (r'pEW $\mathrm{[\AA]}$ of $\rm{C}\,\mathrm{II}$'\
                       + r'$ \ \lambda$6580')       
 
-        self.master['ax_2'].set_ylabel(y_label, fontsize=fs, labelpad=8)
+        self.master['ax_0'].set_yscale(self.yscale)      
 
+        if self.yscale == 'linear':
+            self.master['ax_0'].set_ylim(0., 4.5)      
+            self.master['ax_0'].yaxis.set_minor_locator(MultipleLocator(0.5))
+            self.master['ax_0'].yaxis.set_major_locator(MultipleLocator(1.))   
+            self.master['ax_0'].tick_params(axis='x', which='major',
+              labelsize=fs, pad=8)
+            self.master['ax_0'].minorticks_on()
+            self.master['ax_0'].tick_params('both', length=8, width=1,
+              which='major')
+            self.master['ax_0'].tick_params('both', length=4, width=1,
+              which='minor')
         
-        self.master['ax_0'].set_xlim(1500., 10000.)
-        self.master['ax_0'].set_ylim(0., 3.5)      
+        elif  self.yscale == 'log':
+            self.master['ax_0'].set_ylim(0.05, 5.)      
+        
+        self.master['ax_2'].set_ylabel(y_label, fontsize=fs, labelpad=8)
+        self.master['ax_0'].set_xlim(1500., 12000.)
         self.master['ax_0'].tick_params(axis='y', which='major',
           labelsize=fs, pad=8)      
-        self.master['ax_0'].tick_params(axis='x', which='major',
-          labelsize=fs, pad=8)
-        self.master['ax_0'].minorticks_on()
-        self.master['ax_0'].tick_params('both', length=8, width=1,
-          which='major')
-        self.master['ax_0'].tick_params('both', length=4, width=1,
-          which='minor')
+
         self.master['ax_0'].xaxis.set_minor_locator(MultipleLocator(500.))
-        self.master['ax_0'].xaxis.set_major_locator(MultipleLocator(2000.))   
-        self.master['ax_0'].yaxis.set_minor_locator(MultipleLocator(0.5))
-        self.master['ax_0'].yaxis.set_major_locator(MultipleLocator(1.))        
+        self.master['ax_0'].xaxis.set_major_locator(MultipleLocator(2000.))        
         self.master['ax_0'].tick_params(labelleft='off')          
         self.master['ax_0'].tick_params(labelbottom='off')          
        
         for idx in ['1', '2', '3', '4']:
+            self.master['ax_' + idx].set_yscale(self.yscale)      
             self.master['ax_' + idx].tick_params(labelleft='off')          
             self.master['ax_' + idx].tick_params(labelbottom='off')    
             self.master['ax_' + idx].tick_params('both', length=8, width=1,
@@ -346,12 +229,15 @@ class Make_Scan(object):
         
     def save_figure(self):        
         if self.save_fig:
+            
+            fname = 'Fig_11fe_C-scan'
+            if  self.yscale == 'log':
+                fname += '_log'
             if self.compare_7d:
-                fname = 'Fig_11fe_C-scan_comp.pdf'
-            else:
-                fname = 'Fig_11fe_C-scan.pdf'
+                fname += '_comp'
+
             directory = './../OUTPUT_FILES/FIGURES/'
-            plt.savefig(directory + fname, format='pdf', dpi=360,
+            plt.savefig(directory + fname + '.pdf', format='pdf', dpi=360,
                         bbox_inches='tight')
     
     def run_make_scan(self):
@@ -361,9 +247,157 @@ class Make_Scan(object):
         if self.show_fig:
             plt.show()
         plt.close()
+
+class Add_Curves(object):
+    
+    def __init__(self, ax, axi_o, ax_bot, t_exp, idx, add_7d):
+        
+        self.t_exp = t_exp        
+        self.ax = ax
+        self.axi_o = axi_o
+        self.ax_bot = ax_bot
+        self.idx = idx
+        self.add_7d = add_7d
+        self.t = str(int(round(float(self.t_exp))))
+        self.panel = ['a', 'b', 'c', 'd', 'e']
+
+        self.pkl_list = []
+        self.D = {}
+        self.D['vel'], self.D['pEW'], self.D['unc'] = [], [], []
+        
+    def set_fig_frame(self):
+        """Define the configuration of the figure axes."""
+
+        x_label_o = r'$\lambda \ \mathrm{[\AA}]}$'
+        x_label_n = r'$\lambda \ \mathrm{[\mu m}]}$'
+
+
+        #self.axi_o.set_xlabel(x_label_o, fontsize=fs - 4., labelpad=-2.)
+        self.axi_o.set_xlim(6200., 6550.)
+        self.axi_o.set_ylim(0.60, 1.15)
+        self.axi_o.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
+        self.axi_o.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
+        self.axi_o.minorticks_on()
+        self.axi_o.tick_params('both', length=8, width=1, which='major', pad=2)
+        self.axi_o.tick_params('both', length=4, width=1, which='minor', pad=2)
+        self.axi_o.xaxis.set_minor_locator(MultipleLocator(50.))
+        self.axi_o.xaxis.set_major_locator(MultipleLocator(150.))
+        self.axi_o.yaxis.set_minor_locator(MultipleLocator(0.05))
+        self.axi_o.yaxis.set_major_locator(MultipleLocator(0.2)) 
+        self.axi_o.tick_params(labelleft='off')          
+
+    def add_texp_text(self):
+        #y_pos = 2.9
+        y_pos = 3.3
+            
+        self.ax.text(1750., y_pos, r'$t_{\rm{exp}}=' + self.t_exp + '\\ \\rm{d}$',
+                     fontsize=20., horizontalalignment='left', color='k')
+        self.ax.text(1750., y_pos - 0.55, r'$\mathbf{' + self.panel[self.idx] + '}$',
+                     fontsize=20., horizontalalignment='left', color='k')
+
+    def load_and_plot_observational_spectrum(self):
+        directory = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'
+                     + 'observational_spectra/2011fe/')
+        with open(directory + texp2date[self.t_exp] + '.pkl', 'r') as inp:
+            pkl = cPickle.load(inp)
+            flux_raw = pkl['flux_raw'] / pkl['norm_factor']
+            self.ax.plot(pkl['wavelength_corr'], flux_raw,
+                         color='k', ls='-', lw=3., zorder=2.,
+                         label=r'$\mathrm{SN\ 2011fe}$')
+            self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
+                         color='k', ls='-', lw=3., zorder=2.)            
+
+        #Plot Si feature label.
+        x = pkl['wavelength_minima_f7']
+        y = pkl['flux_minima_f7']
+        self.ax.plot([x, x], [y + 0.4, y + 0.8], ls='-', marker='None',
+                         color='grey', lw=2.)
+
+        self.ax.text(x, y + 1., r'Si', fontsize=20.,
+                         horizontalalignment='center', color='grey')
+
+        #Plot C feature label.
+        x = pkl['wavelength_minima_f7'] + 220.
+        y = pkl['flux_minima_f7']            
+        
+        self.ax.plot([x, x], [y + 0.7, y + 1.2], ls='-', marker='None',
+                         color='grey', lw=2.)
+
+        self.ax.text(x, y + 1.4, r'C', fontsize=20.,
+                     horizontalalignment='center', color='grey')
+        
+        #Get measured pEW.
+        if np.isnan(pkl['pEW_fC']):
+            pkl['pEW_fC'], pkl['pEW_unc_fC'] = 0., 0.
+        
+        self.D['pEW_obs'] = pkl['pEW_fC']
+        self.D['unc_obs'] = pkl['pEW_unc_fC']        
+ 
+        #Add spectrum at 7.2days for comparison.
+        if self.add_7d:
+            with open(directory + '2011_08_30.pkl', 'r') as inp:
+                pkl = cPickle.load(inp)
+                flux_raw = pkl['flux_raw'] / pkl['norm_factor']
+                self.ax.plot(pkl['wavelength_corr'], flux_raw,
+                             color='g', ls='-', lw=3., zorder=2.,
+                             alpha=0.3, label=r'@7.2 days')
+                self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
+                                color='g', ls='-', lw=3.,
+                                alpha=0.3, zorder=2.)  
+
+        #Plot observed spectra at top plot.
+        if self.idx == 0:
+            #self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
+            #               handletextpad=0.5, labelspacing=0, loc=2) 
+            self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
+                           handletextpad=0.5, labelspacing=0,
+                           bbox_to_anchor=(0.415, 0.905),
+                           bbox_transform=plt.gcf().transFigure) 
+
+           
+
+    def load_and_plot_synthetic_spectrum(self):
+        
+        def make_fpath(v):
+            lum = lum2loglum(texp2L[self.t_exp])
+            fname = 'loglum-' + lum + '_v_stop_F1-' + v
+            return (path_tardis_output + '11fe_' + self.t
+                    + 'd_C-scan/' + fname + '/' + fname + '.pkl')
+                    
+        for i, v in enumerate(v_stop):
+            try:
+                with open(make_fpath(v), 'r') as inp:
+                    pkl = cPickle.load(inp)
+                    self.pkl_list.append(pkl)
+                    flux_raw = pkl['flux_raw'] / pkl['norm_factor']
+                    self.ax.plot(pkl['wavelength_corr'], flux_raw,
+                                 color=cmap(Norm(i)), ls='-', lw=2.,
+                                 zorder=1.)
+                    self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
+                                       color=cmap(Norm(i)), ls='-', lw=2.,
+                                       zorder=1.)
+                                       
+                    pEW = pkl['pEW_fC']
+                    if np.isnan(pEW):
+                        pEW = 0.
+                    self.D['vel'].append(float(v))
+                    self.D['pEW'].append(pEW)
+                    self.D['unc'].append(pkl['pEW_unc_fC'])                   
+            except:
+                self.D['vel'].append(float(v))
+                self.D['pEW'].append(np.nan)
+                self.D['unc'].append(np.nan)
+                 
+    def run_make_slab(self):
+        self.set_fig_frame()
+        self.add_texp_text()
+        self.load_and_plot_observational_spectrum()
+        self.load_and_plot_synthetic_spectrum()
+        return self.D
                 
 if __name__ == '__main__':
-    Make_Scan(compare_7d=False, show_fig=True, save_fig=True)
-    Make_Scan(compare_7d=True, show_fig=True, save_fig=True)
+    Make_Scan(yscale='log', compare_7d=False, show_fig=True, save_fig=True)
+    Make_Scan(yscale='linear', compare_7d=False, show_fig=True, save_fig=True)
+    #Make_Scan(compare_7d=True, show_fig=True, save_fig=True)
 
     
