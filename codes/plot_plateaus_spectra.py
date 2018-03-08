@@ -93,7 +93,7 @@ class Plateaus_Spectra(object):
                 idx = j * self.N_s1 + i + 1
                 self.F['ax' + str(idx)] = plt.subplot(self.Nd, self.N_s1, idx)
         
-        self.F['fig'].subplots_adjust(left=0.08, right=0.85, bottom=0.135) 
+        self.F['fig'].subplots_adjust(left=0.08, right=0.85, top=0.91, bottom=0.07) 
         self.F['bar_ax'] = self.F['fig'].add_axes([0.87, 0.32, 0.02, 0.35])    
         
         plt.subplots_adjust(wspace=0.15, hspace=0.05)        
@@ -114,11 +114,14 @@ class Plateaus_Spectra(object):
     def set_frame(self):
 
         #Make label.
-        x_label = (r'$X(\rm{C})$ at 7850 $\leq\ v \ \leq$'\
+        x_label_XC = (r'$X(\rm{C})$ at 7850 $\leq\ v \ \leq$'\
                    r' 13300$ \ \mathrm{[km\ s^{-1}]}$')     
+        x_label_wl = r'$\lambda \ \mathrm{[\AA}]}$'
         y_label = r'$\mathrm{Relative \ f}_{\lambda}$'
 
-        self.F['fig'].text(0.35, 0.03, x_label, va='center',
+        self.F['fig'].text(0.35, 0.95, x_label_XC, va='center',
+                           rotation='horizontal', fontsize=fs)  
+        self.F['fig'].text(0.45, 0.03, x_label_wl, va='center',
                            rotation='horizontal', fontsize=fs)  
         self.F['fig'].text(0.02, 0.51, y_label, va='center',
                            rotation='vertical', fontsize=fs)  
@@ -164,13 +167,20 @@ class Plateaus_Spectra(object):
                     self.F['ax' + idx].set_ylabel(
                       y_label, fontsize=fs, labelpad=10.)
                 
-                if j == self.Nd - 1:
+             
+             
+             
+                if j != self.Nd - 1:
+                    self.F['ax' + idx].tick_params(labelbottom='off')          
+             
+                if j == 0:
+   
                     x_label = r'$X(\rm{C})=' + self.s1_labels[i] + '$'
                    
                     self.F['ax' + idx].set_xlabel(
-                      x_label, fontsize=fs, labelpad=10.)                    
-                else:
-                    self.F['ax' + idx].tick_params(labelbottom='off')          
+                      x_label, fontsize=fs)                    
+                    self.F['ax' + idx].xaxis.set_label_position('top')
+
 
     def load_observational_data(self):
         directory = ('/home/heringer/Research/routines_11fe-05bl/INPUT_FILES/'
@@ -262,7 +272,7 @@ class Plateaus_Spectra(object):
         plt.close()        
 
 if __name__ == '__main__':
-    #Plateaus_Spectra(region='optical', show_fig=True, save_fig=False)
-    Plateaus_Spectra(region='NIR', show_fig=True, save_fig=True)
+    Plateaus_Spectra(region='optical', show_fig=False, save_fig=True)
+    #Plateaus_Spectra(region='NIR', show_fig=True, save_fig=True)
 
     

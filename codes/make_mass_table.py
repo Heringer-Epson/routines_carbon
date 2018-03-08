@@ -165,7 +165,7 @@ class Make_Slab(object):
             
             for i in range(len(self.syn_list)):
                 line1 = (
-                  '\multirow{6}{*}{' + t_list[i] + '} & $m_{\\rm{tot}}$ & $'
+                  '\multirow{4}{*}{' + t_list[i] + '} & $m_{\\rm{tot}}$ & $'
                   + format(self.D['m_dens' + str(i) + '_i'].value, '.4f')
                   + '$ & $'
                   + format(self.D['m_dens' + str(i) + '_o'].value, '.4f')
@@ -179,52 +179,34 @@ class Make_Slab(object):
                   + format(self.D['m_eldens' + str(i) + '_o'].value, '.4f')
                   + '$ & $'
                   + format(self.D['m_eldens' + str(i) + '_t'].value, '.4f')
-                  + '$ \\\\\n') 
+                  + '$ \\\\\n')             
                 line3 = (
-                  ' & $m$(\ion{C}{1}) & $'
-                  + format(self.D['m_iondens' + str(i) + '0_i'].value, '.4f')
-                  + '$ & $'
-                  + format(self.D['m_iondens' + str(i) + '0_o'].value, '.4f')
-                  + '$ & $'
-                  + format(self.D['m_iondens' + str(i) + '0_t'].value, '.4f')
-                  + '$ \\\\\n')                
-                line4 = (
                   ' & $m$(\ion{C}{2}) & $'
                   + format(self.D['m_iondens' + str(i) + '1_i'].value, '.4f')
                   + '$ & $'
                   + format(self.D['m_iondens' + str(i) + '1_o'].value, '.4f')
                   + '$ & $'
                   + format(self.D['m_iondens' + str(i) + '1_t'].value, '.4f')
-                  + '$ \\\\\n')                  
-                line5 = (
-                  ' & $m$(\ion{C}{1} $^{\dagger})$\\tablenotemark{d} & $'
-                  + format(self.D['m_lvldens' + str(i) + '0_i'].value * 1.e10, '.4f')
-                  + '$ & $'
-                  + format(self.D['m_lvldens' + str(i) + '0_o'].value * 1.e10, '.4f')
-                  + '$ & $'
-                  + format(self.D['m_lvldens' + str(i) + '0_t'].value * 1.e10, '.4f')
-                  + '$ \\\\\n')                  
-                line6 = (
-                  ' & $m$(\ion{C}{2} $^{\dagger})$\\tablenotemark{d} & $'
-                  + format(self.D['m_lvldens' + str(i) + '1_i'].value * 1.e10, '.4f')
-                  + '$ & $'
-                  + format(self.D['m_lvldens' + str(i) + '1_o'].value * 1.e10, '.4f')
-                  + '$ & $'
-                  + format(self.D['m_lvldens' + str(i) + '1_t'].value * 1.e10, '.4f')
-                  + '$\\Bstrut')                
+                  + '$ \\\\\n')                                 
+                line4 = (
+                  ' & $m$(\ion{C}{2} $^{\dagger})$\\tablenotemark{e} & $'
+                  + format(self.D['m_lvldens' + str(i) + '1_i'].value * 1.e10, '.2f')
+                  + 'e^{-10}$ & $'
+                  + format(self.D['m_lvldens' + str(i) + '1_o'].value * 1.e10, '.2f')
+                  + 'e^{-10}$ & $'
+                  + format(self.D['m_lvldens' + str(i) + '1_t'].value * 1.e10, '.2f')
+                  + 'e^{-10}$\\Bstrut')                
                 if i == 0:
                     line1 += ' \\\\\n'
                 else:
                     line1 += '\\Tstrut \\\\\n'                    
                 if i != 4:
-                    line6 += ' \\\\\n'
+                    line4 += ' \\\\\n'
             
                 out.write(line1)
                 out.write(line2)
                 out.write(line3)
                 out.write(line4)
-                out.write(line5)
-                out.write(line6)
                 if i != 4:
                     out.write('\\hline \n')
 

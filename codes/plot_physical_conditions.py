@@ -239,14 +239,23 @@ class Make_Slab(object):
         mass_max = 10. ** int(np.log10(max(self.D['m_dens4_cb'].value)))
         mass_scaling = qtty_max / mass_max
         str_scaling = str(int(np.log10(mass_scaling)))  
+        
+        mass_scaling_C = mass_scaling * 1.e2
+        str_scaling_C = str(int(np.log10(mass_scaling_C)))  
+
+        self.ax_top.plot(
+          self.vel_cb_center, self.D['m_eldens4_cb'] * mass_scaling_C,
+          ls='--', lw=4., marker='None', color='#b15928', alpha=0.7,
+          label=r'$m(\mathrm{C}) \times \mathrm{10^{' + str_scaling_C + '}}$')
 
         self.ax_top.plot(
           self.vel_cb_center, self.D['m_dens4_cb'] * mass_scaling,
-          ls='--', lw=2., marker='None', color='dimgray', alpha=0.5,
+          ls=':', lw=4., marker='None', color='dimgray', alpha=0.7,
           label=r'$m_{\mathrm{total}} \times \mathrm{10^{' + str_scaling + '}}$')
 
         self.ax_top.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1,
-                           labelspacing=-0.2, loc='best')
+                           labelspacing=-0.2, bbox_to_anchor=(0.615, 0.725),
+                           bbox_transform=plt.gcf().transFigure)
                             
     def make_input_files(self):
         
@@ -549,8 +558,8 @@ if __name__ == '__main__':
                      + (f1 + v + f2 + L + f3 + t)
                      for (v, L, t) in zip(v_05bl, L_05bl, t_05bl)]    
 
-    #Make_Slab(syn_list, syn_05bl, Z=6, ionization=0, transition=10,
-    #          show_fig=True, save_fig=False)
+    #Make_Slab(syn_list, syn_05bl, Z=6, ionization=1, transition=10,
+    #          show_fig=False, save_fig=True)
     
     Make_Slab(syn_list, syn_05bl, Z=6, ionization=0, transition=10,
               show_fig=False, save_fig=True)
