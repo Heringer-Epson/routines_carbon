@@ -328,7 +328,7 @@ class Plot_Models(object):
             plt.show()
         
 if __name__ == '__main__':
-    Plot_Models(add_tomography=True, show_fig=True, save_fig=True)
+    Plot_Models(add_tomography=True, show_fig=True, save_fig=False)
     
 #Try to obtain the following predictions:
 #https://arxiv.org/pdf/1706.01898.pdf (Shen+ 2017)

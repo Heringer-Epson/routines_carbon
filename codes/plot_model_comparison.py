@@ -15,13 +15,14 @@ from binning import make_bin
 M_sun = const.M_sun.to('g').value
 fs = 26.
 
-model_directories = ['Seitenzahl_2013_ddt/', 'Seitenzahl_2016_gcd/',
-                     'Parkmor_2010_merger/', 'Sim_2012_doubledet/']
+model_directories = [
+  'Seitenzahl_2013_ddt/', 'Seitenzahl_2016_gcd/', 'Parkmor_2010_merger/']
 model_isotope_files = [
   'ddt_2013_n100_isotopes.dat', 'gcd_2016_gcd200_isotopes.dat',
-  'merger_2012_11_09_isotopes.dat', 'doubledet_2012_csdd-s_isotopes.dat']
+  'merger_2012_11_09_isotopes.dat']
 model_time = [100.22 * u.s, 100.22 * u.s, 100.07 * u.s, 100.06 * u.s]
-labels = ['DDT N100', 'GCD200', 'Merger', 'Double det.']
+labels = ['DDT N100', 'GCD200', 'Violent Merger']
+#colors = ['#a6cee3','#1f78b4','#fdbf6f','#ff7f00','#cab2d6']
 colors = ['#a6cee3','#1f78b4','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']
 
 
@@ -47,11 +48,7 @@ def get_mass(v, dens, X, time):
     return mass_cord, m_X
 
 
-class Plot_Models(object):
-    '''Note, metallicity seems to have a nearly negligible impact on the
-    location of carbon
-    '''
-    
+class Plot_Models(object):   
     def __init__(self, mass_subp=False, add_tomography=False,
                  show_fig=True, save_fig=True):
         
@@ -230,8 +227,8 @@ class Plot_Models(object):
         Cdens_at100s = np.multiply(dens_at100s, C) 
 
         #Plot original work.
-        self.ax_XC.step(v, C, ls='-', color='k', lw=4., where='post',
-                        zorder=4., label=r'SN 2011fe')
+        self.ax_XC.step(v, C, ls='--', color='k', lw=4., where='post',
+                        label=r'SN 2011fe')
                         
         if self.mass_subp:
 
@@ -245,58 +242,6 @@ class Plot_Models(object):
 
             self.ax_mass.step(self.vel_cb_center, mass_cb, ls='-', color='k',
                                lw=4., where='mid', zorder=4., label=r'SN 2011fe')
-
-    def add_hesma_models(self):
-        for i, model_dir in enumerate(model_directories):
-            #Note that mass does not need to be compute at 100s as it is conserved.,
-            fpath = self.top_dir + model_dir + model_isotope_files[i]
-            v, dens, C = read_hesma(fpath)
-            dens_at100s = dens * (model_time[i] / (100. *u.s))**3.
-            Cdens_at100s = np.multiply(dens_at100s, C) 
-
-            self.ax_XC.step(v, C, ls=ls[i], color=colors[i], lw=4., where='post',
-                            label=labels[i])  
-                            
-            if self.mass_subp:
-
-
-                vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-                  make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
-      
-      
-                self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[i], lw=4.,
-                                   color=colors[i], where='mid', label=labels[i])    
-
-    def load_Shen_2017_ddet_models(self):
-                
-        fpath = self.top_dir + 'Shen_2017_det/1.00_5050.dat'
-        time = 10. * u.s #From email.
-        m, v, C = np.loadtxt(fpath, skiprows=2, usecols=(0, 1, 17),
-                             unpack=True)
-        v = (v * u.cm / u.s).to(u.km / u.s)
-        m = (m * u.solMass).to(u.g)
-        m_step = np.diff(m)
-        r_at100s = v.to(u.cm / u.s) * 100. * u.s
-        #Ken Shen suggests not simply scaling the density because the explosion
-        #is not quite homologous at 10s. Also, the data is already zone centered.
-        volume_at100s = 3. / 4. * np.pi * (r_at100s.to(u.cm))**3.
-        volume_at100s_step = np.diff(volume_at100s)
-        dens_at100s = m_step.to(u.g) / volume_at100s_step
-        v_avg = (v[0:-1] + v[1:]) / 2.
-
-        Cdens_at100s = np.multiply(dens_at100s, C[1::]) 
-
-        self.ax_XC.step(v, C, ls=ls[-2], color=colors[-2], lw=4., where='mid',
-                        label=r'WD det.')
-
-        if self.mass_subp:
-
-            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-              make_bin(v_avg, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
-
-            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-2],
-                               color=colors[-2], lw=4., where='mid',
-                               label=r'WD det.')
 
     def plot_W7_models(self):
         
@@ -326,6 +271,102 @@ class Plot_Models(object):
             self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
                                color=colors[-1], lw=4., where='post', label='W7')
 
+
+    def add_hesma_models(self):
+        for i, model_dir in enumerate(model_directories):
+            #Note that mass does not need to be compute at 100s as it is conserved.,
+            fpath = self.top_dir + model_dir + model_isotope_files[i]
+            v, dens, C = read_hesma(fpath)
+            dens_at100s = dens * (model_time[i] / (100. *u.s))**3.
+            Cdens_at100s = np.multiply(dens_at100s, C) 
+
+            self.ax_XC.step(v, C, ls=ls[i], color=colors[i], lw=4., where='post',
+                            label=labels[i])  
+                            
+            if self.mass_subp:
+
+
+                vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+                  make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+      
+      
+                self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[i], lw=4.,
+                                   color=colors[i], where='mid', label=labels[i])    
+
+    def load_Fink_2010_doubledet(self):
+        
+        #Get time and velocity from model file.
+        fpath = self.top_dir + 'Fink_2010_ddet/model_1d.txt'
+        with open(fpath, 'r') as inp:
+            num_cels = inp.readline() #not used.
+            time = float(inp.readline()) * u.d
+        v, dens = np.loadtxt(fpath, skiprows=2, usecols=(1,2), unpack=True)
+        v = v * u.km / u.s
+        dens = 10.**dens * u.g / u.cm**3        
+        dens_at100s = dens * (time.to(u.s) / (100. *u.s))**3.
+
+        #Get carbon mass fraction from abundance file.
+        fpath = self.top_dir + 'Fink_2010_ddet/abund_1d.txt'
+        C = np.loadtxt(fpath, skiprows=0, usecols=(6,), unpack=True)
+
+        Cdens_at100s = np.multiply(dens_at100s, C) 
+
+        #Perform relevant calculation to get mass.
+        r_at100s = v.to(u.cm / u.s) * 100. * u.s
+        volume = 3. / 4. * np.pi * (r_at100s.to(u.cm))**3.
+        volume_at100s = 3. / 4. * np.pi * (r_at100s.to(u.cm))**3.
+        volume_at100s_step = np.diff(volume_at100s)
+
+        m, m_C = get_mass(v, dens, C, time)
+        m_C = np.cumsum(m_C)
+        
+        self.ax_XC.step(v, C, ls=ls[-1], color=colors[-3], lw=4., where='mid',
+                        label='Double Det.')
+
+        if self.mass_subp:
+
+            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+              make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+
+
+            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
+                               color=colors[-3], lw=4., where='mid',
+                               label='Double Det.')
+            
+        
+    def load_Shen_2017_ddet_models(self):
+                
+        fpath = self.top_dir + 'Shen_2017_det/1.00_5050.dat'
+        time = 10. * u.s #From email.
+        m, v, C = np.loadtxt(fpath, skiprows=2, usecols=(0, 1, 17),
+                             unpack=True)
+        v = (v * u.cm / u.s).to(u.km / u.s)
+        m = (m * u.solMass).to(u.g)
+        m_step = np.diff(m)
+        r_at100s = v.to(u.cm / u.s) * 100. * u.s
+        #Ken Shen suggests not simply scaling the density because the explosion
+        #is not quite homologous at 10s. Also, the data is already zone centered.
+        volume_at100s = 3. / 4. * np.pi * (r_at100s.to(u.cm))**3.
+        volume_at100s_step = np.diff(volume_at100s)
+        dens_at100s = m_step.to(u.g) / volume_at100s_step
+        v_avg = (v[0:-1] + v[1:]) / 2.
+
+        Cdens_at100s = np.multiply(dens_at100s, C[1::]) 
+
+        self.ax_XC.step(v, C, ls=ls[-2], color=colors[-2], lw=4., where='mid',
+                        label=r'WD Det.')
+
+        if self.mass_subp:
+
+            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+              make_bin(v_avg, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+
+            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-2],
+                               color=colors[-2], lw=4., where='mid',
+                               label=r'WD Det.')
+
+        
+
     def add_legend(self):
         self.ax_XC.legend(frameon=True, fontsize=fs, numpoints=1, ncol=1,
                           labelspacing=-0.1, loc=2) 
@@ -349,9 +390,10 @@ class Plot_Models(object):
         self.add_analysis_regions()
         if self.add_tomography:
             self.add_tomography_models()
-        self.add_hesma_models()
-        self.load_Shen_2017_ddet_models()
         self.plot_W7_models()
+        self.add_hesma_models()
+        self.load_Fink_2010_doubledet()
+        self.load_Shen_2017_ddet_models()
         self.add_legend()
         self.save_figure()
         if self.show_fig:

@@ -46,10 +46,9 @@ texp2L = {'3.7': 0.08e9, '5.9': 0.32e9, '9.0': 1.1e9,
 
 class Make_Scan(object):
     
-    def __init__(self, yscale='linear', compare_7d=False,
+    def __init__(self, compare_7d=False,
                  show_fig=True, save_fig=False):
 
-        self.yscale = yscale
         self.show_fig = show_fig
         self.save_fig = save_fig
         self.compare_7d = compare_7d         
@@ -99,16 +98,15 @@ class Make_Scan(object):
                        fontsize=fs)     
         cbar.set_ticklabels(v_stop_label)
 
-        if self.yscale == 'linear':
-            xloc = 0.56
-        elif self.yscale == 'log':
-            xloc = 1.
-
-        self.master['axi_o0'] = self.fig.add_axes([xloc, 0.800, 0.30, 0.09])
-        self.master['axi_o1'] = self.fig.add_axes([xloc, 0.674, 0.30, 0.09])
-        self.master['axi_o2'] = self.fig.add_axes([xloc, 0.548, 0.30, 0.09])
-        self.master['axi_o3'] = self.fig.add_axes([xloc, 0.420, 0.30, 0.09])
-        self.master['axi_o4'] = self.fig.add_axes([xloc, 0.294, 0.30, 0.09])
+        xloc = 0.70
+        dx = 0.19
+        dy = 0.065
+        
+        self.master['axi_o0'] = self.fig.add_axes([xloc, 0.829, dx, dy])
+        self.master['axi_o1'] = self.fig.add_axes([xloc, 0.703, dx, dy])
+        self.master['axi_o2'] = self.fig.add_axes([xloc, 0.577, dx, dy])
+        self.master['axi_o3'] = self.fig.add_axes([xloc, 0.450, dx, dy])
+        self.master['axi_o4'] = self.fig.add_axes([xloc, 0.322, dx, dy])
         
         for i, time in enumerate(t_exp_list):
             idx = str(i)
@@ -121,41 +119,32 @@ class Make_Scan(object):
     def set_fig_frame(self):
         """Define the configuration of the figure axes."""
         x_label = r'$\lambda \ \mathrm{[\AA}]}$'
-        y_label = r'$\mathrm{Relative \ f}_{\lambda}$'
+        y_label = r'$\mathrm{log \ f}_{\lambda}\ \mathrm{[arb.\ units]}$'
 
         x_cbar_label = r'$t_{\mathrm{exp}}\ \mathrm{[days]}$'
         y_cbar_label = (r'pEW $\mathrm{[\AA]}$ of $\rm{C}\,\mathrm{II}$'\
                       + r'$ \ \lambda$6580')       
 
-        self.master['ax_0'].set_yscale(self.yscale)      
+        self.master['ax_0'].set_yscale('log')      
 
-        if self.yscale == 'linear':
-            self.master['ax_0'].set_ylim(0., 4.5)      
-            self.master['ax_0'].yaxis.set_minor_locator(MultipleLocator(0.5))
-            self.master['ax_0'].yaxis.set_major_locator(MultipleLocator(1.))   
-            self.master['ax_0'].tick_params(axis='x', which='major',
-              labelsize=fs, pad=8)
-            self.master['ax_0'].minorticks_on()
-            self.master['ax_0'].tick_params('both', length=8, width=1,
-              which='major')
-            self.master['ax_0'].tick_params('both', length=4, width=1,
-              which='minor')
-        
-        elif  self.yscale == 'log':
-            self.master['ax_0'].set_ylim(0.05, 5.)      
+        self.master['ax_0'].set_ylim(0.05, 10.)      
         
         self.master['ax_2'].set_ylabel(y_label, fontsize=fs, labelpad=8)
-        self.master['ax_0'].set_xlim(1500., 12000.)
+        self.master['ax_0'].set_xlim(3000., 12000.)
         self.master['ax_0'].tick_params(axis='y', which='major',
           labelsize=fs, pad=8)      
 
+        self.master['ax_0'].tick_params('both', length=8, width=1,
+          which='major')
+        self.master['ax_0'].tick_params('both', length=4, width=1,
+          which='minor')
         self.master['ax_0'].xaxis.set_minor_locator(MultipleLocator(500.))
         self.master['ax_0'].xaxis.set_major_locator(MultipleLocator(2000.))        
         self.master['ax_0'].tick_params(labelleft='off')          
         self.master['ax_0'].tick_params(labelbottom='off')          
        
         for idx in ['1', '2', '3', '4']:
-            self.master['ax_' + idx].set_yscale(self.yscale)      
+            self.master['ax_' + idx].set_yscale('log')      
             self.master['ax_' + idx].tick_params(labelleft='off')          
             self.master['ax_' + idx].tick_params(labelbottom='off')    
             self.master['ax_' + idx].tick_params('both', length=8, width=1,
@@ -182,10 +171,10 @@ class Make_Scan(object):
           which='major')
         self.master['ax_bot'].tick_params('y', length=4, width=1,
           which='minor')
-        self.master['ax_bot'].xaxis.set_major_locator(MultipleLocator(1.))   
+        self.master['ax_bot'].xaxis.set_major_locator(MultipleLocator(2.))   
         self.master['ax_bot'].xaxis.set_minor_locator(MultipleLocator(1.))   
+        self.master['ax_bot'].yaxis.set_major_locator(MultipleLocator(5.))  
         self.master['ax_bot'].yaxis.set_minor_locator(MultipleLocator(1.))
-        self.master['ax_bot'].yaxis.set_major_locator(MultipleLocator(2.))  
 
     def make_bottom_plot(self):
         
@@ -230,9 +219,7 @@ class Make_Scan(object):
     def save_figure(self):        
         if self.save_fig:
             
-            fname = 'Fig_11fe_C-scan'
-            if  self.yscale == 'log':
-                fname += '_log'
+            fname = 'Fig_11fe_C-scan_log'
             if self.compare_7d:
                 fname += '_comp'
 
@@ -274,7 +261,7 @@ class Add_Curves(object):
 
         #self.axi_o.set_xlabel(x_label_o, fontsize=fs - 4., labelpad=-2.)
         self.axi_o.set_xlim(6200., 6550.)
-        self.axi_o.set_ylim(0.60, 1.15)
+        self.axi_o.set_ylim(0.70, 1.3)
         self.axi_o.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
         self.axi_o.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
         self.axi_o.minorticks_on()
@@ -287,12 +274,10 @@ class Add_Curves(object):
         self.axi_o.tick_params(labelleft='off')          
 
     def add_texp_text(self):
-        #y_pos = 2.9
-        y_pos = 3.3
             
-        self.ax.text(1750., y_pos, r'$t_{\rm{exp}}=' + self.t_exp + '\\ \\rm{d}$',
+        self.ax.text(3300., 0.08, r'$t_{\rm{exp}}=' + self.t_exp + '\\ \\rm{d}$',
                      fontsize=20., horizontalalignment='left', color='k')
-        self.ax.text(1750., y_pos - 0.55, r'$\mathbf{' + self.panel[self.idx] + '}$',
+        self.ax.text(3300., 0.2, r'$\mathbf{' + self.panel[self.idx] + '}$',
                      fontsize=20., horizontalalignment='left', color='k')
 
     def load_and_plot_observational_spectrum(self):
@@ -320,10 +305,10 @@ class Add_Curves(object):
         x = pkl['wavelength_minima_f7'] + 220.
         y = pkl['flux_minima_f7']            
         
-        self.ax.plot([x, x], [y + 0.7, y + 1.2], ls='-', marker='None',
+        self.ax.plot([x, x], [y + 0.7, y + 2.2], ls='-', marker='None',
                          color='grey', lw=2.)
 
-        self.ax.text(x, y + 1.4, r'C', fontsize=20.,
+        self.ax.text(x, y + 2.4, r'C', fontsize=20.,
                      horizontalalignment='center', color='grey')
         
         #Get measured pEW.
@@ -396,8 +381,7 @@ class Add_Curves(object):
         return self.D
                 
 if __name__ == '__main__':
-    Make_Scan(yscale='log', compare_7d=False, show_fig=True, save_fig=True)
-    Make_Scan(yscale='linear', compare_7d=False, show_fig=True, save_fig=True)
+    Make_Scan(compare_7d=False, show_fig=True, save_fig=True)
     #Make_Scan(compare_7d=True, show_fig=True, save_fig=True)
 
     

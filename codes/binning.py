@@ -56,17 +56,49 @@ def make_bin(vel_read, dens_read, time, fb, cb):
     
     #Compute integrate quantities in large zones (to printed for tables).
     condition_i = ((vel_fb[1:] > 7850. * u.km / u.s)
-                   & (vel_fb[1:] < 13300. * u.km / u.s))
+                   & (vel_fb[1:] <= 13300. * u.km / u.s))
     condition_o = ((vel_fb[1:] > 13300. * u.km / u.s)
-                   & (vel_fb[1:] < 16000. * u.km / u.s))   
-    condition_t = (vel_fb[1:] > 7850. * u.km / u.s)
+                   & (vel_fb[1:] <= 16000. * u.km / u.s))   
+    condition_u = (vel_fb[1:] > 16000. * u.km / u.s)
 
     mass_i = sum(mass_fb[condition_i])
     mass_o = sum(mass_fb[condition_o])
-    mass_t = sum(mass_fb[condition_t])
+    mass_u = sum(mass_fb[condition_u])
     
-    return vel_cb, mass_cb, mass_i, mass_o, mass_t
+    return vel_cb, mass_cb, mass_i, mass_o, mass_u
+
+
+def get_binned_maxima(vel_read, qtty_read, fb, cb):
+    """
+    Compute quantities in extremely fine bins of 1 km/s and then retrieve
+    the maxima in given regions.) 
+    """
+    #=-=-=-=-=-=-=-=-=-=-=-=- get binned mass -=-=-=-=-=-=-=-=-=-=-=-=
+    vu = vel_read.unit
+
+    #Make finer bins.
+    fb_step = fb.to(vu).value
+    vel_fb = np.arange(vel_read.value[0], vel_read.value[-1], fb_step) * vu
+    qtty_fb = np.zeros(len(vel_fb)) * qtty_read.unit
+                
+    for i,vb in enumerate(vel_fb):
+        idx = next(j for j,vr in enumerate(vel_read) if vr >= vb)
+        #print idx, vb
+        qtty_fb[i] = qtty_read[idx]
+
+    #Get qtty in regions.
+    condition_i = ((vel_fb > 7850. * u.km / u.s)
+                   & (vel_fb <= 13300. * u.km / u.s))
+    condition_o = ((vel_fb > 13300. * u.km / u.s)
+                   & (vel_fb <= 16000. * u.km / u.s))   
+    condition_u = (vel_fb > 16000. * u.km / u.s)
+
+    qtty_i = qtty_fb[condition_i]
+    qtty_o = qtty_fb[condition_o]
+    qtty_u = qtty_fb[condition_u]
     
+    return max(qtty_i), max(qtty_o), max(qtty_u)
+
 ##Test##
 if __name__ == '__main__': 
 
