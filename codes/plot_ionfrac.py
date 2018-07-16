@@ -53,7 +53,7 @@ class Plot_Ionfractions(object):
     
     Parameters:
     -----------
-    syn_list : list
+    syn_list : ~list
         List containing the full path to the .hdf5 files of the simulations.
     Z : ~int
         Atomic number of the element to be ploted.    
