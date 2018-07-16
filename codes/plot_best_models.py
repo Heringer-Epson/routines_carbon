@@ -10,8 +10,6 @@ import matplotlib as mpl
 import cPickle
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-from matplotlib import cm
-from matplotlib import colors
 
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 

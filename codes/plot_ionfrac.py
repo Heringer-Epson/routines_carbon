@@ -29,7 +29,6 @@ par2label = {None: '', 'CII1012': '6580', 'CI1119': '10693'}
 fs = 20
 
 def retrieve_number_dens(_syn, _Z):
-        
     numdens = pd.read_hdf(_syn + '.hdf', '/simulation/plasma/number_density')
     iondens = pd.read_hdf(_syn + '.hdf', '/simulation/plasma/ion_number_density')
     v_inner = pd.read_hdf(_syn + '.hdf', '/simulation/model/v_inner').values / 1.e5
@@ -45,8 +44,24 @@ def retrieve_number_dens(_syn, _Z):
     return v_inner, np.array(f_ionI), np.array(f_ionII), np.array(f_ionIII)
     
 class Plot_Ionfractions(object):
-    """TBW   
-    """
+    '''
+    Description:
+    ------------
+    This routine plots the fraction of neutral and singly and doubly ionized
+    species of a given element. These quantities are retrieved from the TARDIS
+    simulations of a default (best) model -- see paper for details.
+    
+    Parameters:
+    -----------
+    syn_list : list
+        List containing the full path to the .hdf5 files of the simulations.
+    Z : ~int
+        Atomic number of the element to be ploted.    
+      
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_ionfrac-ELEMENT.pdf' 
+    '''
     
     def __init__(self, syn_list, Z, show_fig=True, save_fig=False):
         
@@ -69,10 +84,22 @@ class Plot_Ionfractions(object):
         y_label = (r'$\frac{n(\mathrm{' + Z2el[self.Z] + '_{X}})}'\
                    + '{n(\mathrm{' + Z2el[self.Z] + '})}$')
         self.ax.set_yscale('log')
+        
         self.ax.set_xlabel(x_label, fontsize=20.)
         self.ax.set_ylabel(y_label, fontsize=20.)
         self.ax.set_xlim(7500.,24000.)
         self.ax.set_ylim(1.e-12,1.e0)
+        
+        #Adding log ticks by hand. This is necessary when the log scale
+        #spans more than 10 orders of magnitude, as is the case here.
+        locmaj = mpl.ticker.LogLocator(base=10, numticks=13) 
+        self.ax.yaxis.set_major_locator(locmaj)
+        
+        locmin = mpl.ticker.LogLocator(
+          base=10.0,subs=(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9), numticks=13)
+        self.ax.yaxis.set_minor_locator(locmin)
+        self.ax.yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
+        
         self.ax.tick_params(axis='y', which='major', labelsize=20., pad=8)      
         self.ax.tick_params(axis='x', which='major', labelsize=20., pad=8)
         self.ax.tick_params('both', length=8, width=1., which='major')
@@ -138,6 +165,5 @@ if __name__ == '__main__':
     syn_list = [path_tardis_output + '11fe_' + t + 'd_C-best/' + fname
                      + '/' + fname for t in t_label]  
 
-    Plot_Ionfractions([syn_list[0]], Z=26, show_fig=True, save_fig=False)
+    Plot_Ionfractions(syn_list, Z=8, show_fig=True, save_fig=False)
 
- 

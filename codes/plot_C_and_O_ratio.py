@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import os                                                               
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -15,14 +13,23 @@ k_B = const.k_B.to(u.eV / u.K)
 CII_pot = 11.26030 * u.eV #From Marion+ 2006
 OII_pot = 13.61806 * u.eV #From Marion+ 2006
 
-print k_B * 5000 * u.K
-
 def Boltz_factor(_T):
     return np.exp((OII_pot - CII_pot) / (k_B * _T))
     
-
 class Plot_Boltz(object):
-    '''TBW.
+    '''
+    Description:
+    ------------
+    Computes the relative fraction of singly ionized ions of oxygen to carbon.
+    Relative is in the sense that these fraction are computed with respect to
+    the number density of neutral atoms for each element.  
+    
+    The calculation is done by using the Saha equation. The 'g'-factor to
+    account for degeneracy states was not included.      
+    
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_Boltz_factor.pdf       
     '''
     
     def __init__(self, show_fig=True, save_fig=True):
@@ -36,18 +43,16 @@ class Plot_Boltz(object):
         self.make_plot()
 
     def set_fig_frame(self):
-        
         x_label = r'$T\ \mathrm{[K]}$'
-
         y_label = (
-          r'$\frac{n(\mathrm{O_{I}})}{n(\mathrm{C_{I}})} \approx\ \frac{1}{0.9} \times e^{\frac{(\epsilon_{\mathrm{CII}}'\
-          +' - \epsilon_{\mathrm{OII}})}{KT}}$')
+          r'$\frac{\frac{n(\mathrm{O_{I}})}{n(\mathrm{O_{II}})}}'\
+          r'{\frac{n(\mathrm{C_{I}})}{n(\mathrm{C_{II}})}} \approx '\
+          r'e^{\frac{(\epsilon_{\mathrm{OII}} - \epsilon_{\mathrm{CII}})}{KT}}$')
 
         self.ax.set_xlabel(x_label, fontsize=fs)
         self.ax.set_ylabel(y_label, fontsize=fs)
         self.ax.set_yscale('log')
         self.ax.set_xlim(5000., 20000.)
-        #self.ax.set_ylim(1.e-3, 1.)
         self.ax.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax.tick_params('both', length=8, width=1, which='major')
@@ -57,10 +62,9 @@ class Plot_Boltz(object):
 
     def plot_Boltz_factor(self):
         T_array = np.arange(4500., 20500., 10.) * u.K
-        factor = Boltz_factor(T_array) / 0.9
+        factor = Boltz_factor(T_array)
         
         self.ax.plot(T_array, factor, ls='-', lw=3., marker='None', color='b')
-        
 
     def manage_output(self):
         plt.tight_layout()
@@ -75,7 +79,6 @@ class Plot_Boltz(object):
         self.set_fig_frame()
         self.plot_Boltz_factor()
         self.manage_output()
-        
         
 if __name__ == '__main__':
     Plot_Boltz(show_fig=True, save_fig=True)

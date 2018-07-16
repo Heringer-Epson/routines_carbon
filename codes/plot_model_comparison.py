@@ -1,15 +1,11 @@
 #!/usr/bin/env python
-
-import os                                                               
-import sys
-import itertools                                                        
+                                                      
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import constants as const
 from astropy import units as u
-from scipy.integrate import trapz, cumtrapz
 from binning import make_bin
 
 M_sun = const.M_sun.to('g').value
@@ -22,13 +18,8 @@ model_isotope_files = [
   'merger_2012_11_09_isotopes.dat']
 model_time = [100.22 * u.s, 100.22 * u.s, 100.07 * u.s, 100.06 * u.s]
 labels = ['DDT N100', 'GCD200', 'Violent Merger']
-#colors = ['#a6cee3','#1f78b4','#fdbf6f','#ff7f00','#cab2d6']
 colors = ['#a6cee3','#1f78b4','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']
-
-
-#ls = ['-', '--', '-', '--', '-', '--']
 ls = ['-', '-', '-', '-', '-', '-']
-
 
 def read_hesma(fpath):
     v, dens, C = np.loadtxt(fpath, skiprows=1, usecols=(0, 1, 19), unpack=True)
@@ -47,23 +38,34 @@ def get_mass(v, dens, X, time):
     m_X = mass_step * X
     return mass_cord, m_X
 
-
 class Plot_Models(object):   
-    def __init__(self, mass_subp=False, add_tomography=False,
-                 show_fig=True, save_fig=True):
-        
-        self.mass_subp = mass_subp
-        self.add_tomography = add_tomography
+    """
+    Description:
+    ------------
+    Plots the carbon mass fraction (top panel) and mass (bottom) panel as a
+    function of the ejecta's velocity for a suit of SN Ia models.
+    The figure serves as a side plot to figure 4 in the paper, showing that
+    either a comparison by mass fraction or mass leads to similar conclusions. 
+    
+    Notes:
+    ------
+    Implementation of constrained/unconstrained regions is slightly different
+    than in 'plot_densities.py', but this is ok since the figure produced here
+    is meant to be a side plot.
+    
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_model_C_with-mass.pdf
+    """
+
+    def __init__(self, show_fig=True, save_fig=True):
+
         self.show_fig = show_fig
         self.save_fig = save_fig
         
-        if self.mass_subp:
-            self.fig_model = plt.figure(figsize=(14.,16.))
-            self.ax_XC = self.fig_model.add_subplot(211) 
-            self.ax_mass = self.fig_model.add_subplot(212, sharex=self.ax_XC) 
-        else:
-            self.fig_model = plt.figure(figsize=(14.,8.))
-            self.ax_XC = self.fig_model.add_subplot(111)         
+        self.fig_model = plt.figure(figsize=(14.,16.))
+        self.ax_XC = self.fig_model.add_subplot(211) 
+        self.ax_mass = self.fig_model.add_subplot(212, sharex=self.ax_XC) 
         
         self.fb = 1. * u.km / u.s
         self.cb = 200. * u.km / u.s
@@ -90,19 +92,16 @@ class Plot_Models(object):
         self.ax_XC.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax_XC.xaxis.set_major_locator(MultipleLocator(5000.))  
                   
-        if self.mass_subp:
-            self.ax_XC.tick_params(labelbottom='off')
-            self.ax_mass.set_xlabel(x_label, fontsize=fs)
-            self.ax_mass.set_ylabel(y_label_mass, fontsize=fs)
-            self.ax_mass.set_yscale('log')
-            self.ax_mass.set_xlim(0., 30000.)
-            self.ax_mass.set_ylim(1.e-7, 1.e-2)
-            self.ax_mass.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
-            self.ax_mass.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-            self.ax_mass.tick_params('both', length=8, width=1, which='major')
-            self.ax_mass.tick_params('both', length=4, width=1, which='minor')
-        else:
-            self.ax_XC.set_xlabel(x_label, fontsize=fs)
+        self.ax_XC.tick_params(labelbottom='off')
+        self.ax_mass.set_xlabel(x_label, fontsize=fs)
+        self.ax_mass.set_ylabel(y_label_mass, fontsize=fs)
+        self.ax_mass.set_yscale('log')
+        self.ax_mass.set_xlim(0., 30000.)
+        self.ax_mass.set_ylim(1.e-7, 1.e-2)
+        self.ax_mass.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
+        self.ax_mass.tick_params(axis='x', which='major', labelsize=fs, pad=8)
+        self.ax_mass.tick_params('both', length=8, width=1, which='major')
+        self.ax_mass.tick_params('both', length=4, width=1, which='minor')
 
     def add_analysis_regions(self):
 
@@ -136,7 +135,6 @@ class Plot_Models(object):
             return np.asarray(X_l_array), np.asarray(X_u_array)
 
         allowed_C_l, allowed_C_u = allowed_C(v)
-        #print zip(v, allowed_C_l, allowed_C_u)
         allowed_Cdens_at100s_l = np.multiply(dens, allowed_C_l) 
         allowed_Cdens_at100s_u = np.multiply(dens, allowed_C_u) 
 
@@ -193,7 +191,6 @@ class Plot_Models(object):
               self.vel_cb_center, zeros_mass, allowed_mass_l_cb.value,
               color='#e41a1c', facecolor='None', hatch='//')
             
-
             cond_mass = (self.vel_cb_center < 20000.)
 
             #To plot the upper constrained region, one has to replace the zeros in
@@ -230,18 +227,15 @@ class Plot_Models(object):
         self.ax_XC.step(v, C, ls='--', color='k', lw=4., where='post',
                         label=r'SN 2011fe')
                         
-        if self.mass_subp:
-
-            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-              make_bin(v, Cdens_at100s, time, self.fb, self.cb) 
-            
-            #All quantities should have the same coarse binning, so any works
-            #for plotting.
-            self.vel_cb_center = (vel_cb.value[0:-1] + vel_cb.value[1:]) / 2.                        
+        #Bottom plot
+        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+          make_bin(v, Cdens_at100s, time, self.fb, self.cb) 
         
-
-            self.ax_mass.step(self.vel_cb_center, mass_cb, ls='-', color='k',
-                               lw=4., where='mid', zorder=4., label=r'SN 2011fe')
+        #All quantities should have the same coarse binning, so any works
+        #for plotting.
+        self.vel_cb_center = (vel_cb.value[0:-1] + vel_cb.value[1:]) / 2.                        
+        self.ax_mass.step(self.vel_cb_center, mass_cb, ls='-', color='k',
+                           lw=4., where='mid', zorder=4., label=r'SN 2011fe')
 
     def plot_W7_models(self):
         
@@ -262,15 +256,11 @@ class Plot_Models(object):
         self.ax_XC.step(v, C, ls=ls[-1], color=colors[-1], lw=4., where='post',
                         label='W7')
 
-        if self.mass_subp:
-
-            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-              make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
-
-
-            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
-                               color=colors[-1], lw=4., where='post', label='W7')
-
+        #Bottom plot
+        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+          make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+        self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
+                           color=colors[-1], lw=4., where='post', label='W7')
 
     def add_hesma_models(self):
         for i, model_dir in enumerate(model_directories):
@@ -283,15 +273,11 @@ class Plot_Models(object):
             self.ax_XC.step(v, C, ls=ls[i], color=colors[i], lw=4., where='post',
                             label=labels[i])  
                             
-            if self.mass_subp:
-
-
-                vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-                  make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
-      
-      
-                self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[i], lw=4.,
-                                   color=colors[i], where='mid', label=labels[i])    
+            #Bottom plot
+            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+              make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[i], lw=4.,
+                               color=colors[i], where='mid', label=labels[i])    
 
     def load_Fink_2010_doubledet(self):
         
@@ -323,17 +309,13 @@ class Plot_Models(object):
         self.ax_XC.step(v, C, ls=ls[-1], color=colors[-3], lw=4., where='mid',
                         label='Double Det.')
 
-        if self.mass_subp:
+        #Bottom plot
+        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+          make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+        self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
+                           color=colors[-3], lw=4., where='mid',
+                           label='Double Det.')
 
-            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-              make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
-
-
-            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
-                               color=colors[-3], lw=4., where='mid',
-                               label='Double Det.')
-            
-        
     def load_Shen_2017_ddet_models(self):
                 
         fpath = self.top_dir + 'Shen_2017_det/1.00_5050.dat'
@@ -356,16 +338,12 @@ class Plot_Models(object):
         self.ax_XC.step(v, C, ls=ls[-2], color=colors[-2], lw=4., where='mid',
                         label=r'WD Det.')
 
-        if self.mass_subp:
-
-            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
-              make_bin(v_avg, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
-
-            self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-2],
-                               color=colors[-2], lw=4., where='mid',
-                               label=r'WD Det.')
-
-        
+        #Bottom plot
+        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+          make_bin(v_avg, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
+        self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-2],
+                           color=colors[-2], lw=4., where='mid',
+                           label=r'WD Det.')
 
     def add_legend(self):
         self.ax_XC.legend(frameon=True, fontsize=fs, numpoints=1, ncol=1,
@@ -375,12 +353,7 @@ class Plot_Models(object):
     def save_figure(self):        
         if self.save_fig:
             directory = './../OUTPUT_FILES/FIGURES/'
-
-            if self.mass_subp:
-                fname = 'Fig_model_composite.pdf'
-            else:
-                fname = 'Fig_model.pdf'
-            
+            fname = 'Fig_model_C_with-mass.pdf'
             plt.tight_layout()   
             plt.savefig(directory + fname, format='pdf',
                         bbox_inches='tight', dpi=360)
@@ -388,8 +361,7 @@ class Plot_Models(object):
     def run_make(self):
         self.set_fig_frame()
         self.add_analysis_regions()
-        if self.add_tomography:
-            self.add_tomography_models()
+        self.add_tomography_models()
         self.plot_W7_models()
         self.add_hesma_models()
         self.load_Fink_2010_doubledet()
@@ -400,11 +372,5 @@ class Plot_Models(object):
             plt.show()
         
 if __name__ == '__main__':
-    #Plot_Models(mass_subp=False, add_tomography=True,
-    #            show_fig=True, save_fig=True)
-    Plot_Models(mass_subp=True, add_tomography=True,
-                show_fig=True, save_fig=True)
-    
-#Try to obtain the following predictions:
-#https://arxiv.org/pdf/1706.01898.pdf (Shen+ 2017)
-#https://arxiv.org/pdf/1002.2173.pdf (Fink+ 2010)
+    Plot_Models(show_fig=True, save_fig=False)
+

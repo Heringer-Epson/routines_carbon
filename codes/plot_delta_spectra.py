@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 
 import os                                                               
-import sys
 
 path_tardis_output = os.environ['path_tardis_output']
 
 import numpy as np
-import tardis   
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import cPickle
-import new_colormaps as cmaps
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
-from matplotlib import cm
-from matplotlib import colors
 
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 
@@ -45,7 +40,36 @@ texp2logL = {'3.7': '7.903', '5.9': '8.505', '9.0': '9.041',
           '12.1': '9.362', '16.1': '9.505', '19.1': '9.544',
           '22.4': '9.505', '28.3': '9.362'}
 
-class Plot_Best(object):
+class Plot_Delta(object):
+    """
+    Description:
+    ------------
+    Similarly to the 'plot_best_models.py; routine, this code will plot, for
+    multiple photospheric epochs, the TARDIS spectra computed for the 'best'
+    models (see paper) computed under two modes: in the first mode, the
+    delta parameter (see references below) is not set (default) and in the
+    second mode, it's set to 1.
+    
+    This provides a comparison that may help to evaluate how well this
+    parameter is taking into account high opacities in the UV. Such opacities
+    may deplete the pool of photons that would otherwise ionize C and O.
+
+    Note:
+    -----
+    TARDIS calculations were delta is set to 1 via the 'delta_treatment'
+    parameter are not working at the moment. i.e., delta is not being enforced
+    to be 1. So, at the moment, the figure produced here is not relevant.
+      
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_compare_delta_spectra.pdf' 
+
+    References:
+    -----------
+    Mazzali & Lucy 1993: http://adsabs.harvard.edu/abs/1993A%26A...279..447M
+    Marion+ 2006: http://adsabs.harvard.edu/abs/2006ApJ...645.1392M
+    TARDIS: http://adsabs.harvard.edu/abs/2014MNRAS.440..387K    
+    """
     
     def __init__(self, show_fig=True, save_fig=False):
         self.show_fig = show_fig
@@ -61,11 +85,11 @@ class Plot_Best(object):
         dx = 0.19
         dy = 0.08
         
-        self.F['axi_o0'] = self.fig.add_axes([xloc, 0.813, dx, dy])
-        self.F['axi_o1'] = self.fig.add_axes([xloc, 0.652, dx, dy])
-        self.F['axi_o2'] = self.fig.add_axes([xloc, 0.491, dx, dy])
+        self.F['axi_o0'] = self.fig.add_axes([xloc, 0.794, dx, dy])
+        self.F['axi_o1'] = self.fig.add_axes([xloc, 0.640, dx, dy])
+        self.F['axi_o2'] = self.fig.add_axes([xloc, 0.485, dx, dy])
         self.F['axi_o3'] = self.fig.add_axes([xloc, 0.330, dx, dy])
-        self.F['axi_o4'] = self.fig.add_axes([xloc, 0.169, dx, dy])
+        self.F['axi_o4'] = self.fig.add_axes([xloc, 0.175, dx, dy])
 
         plt.subplots_adjust(hspace=0.03)
 
@@ -94,9 +118,9 @@ class Plot_Best(object):
               axis='x', which='major', labelsize=fs, pad=8)
             self.F['ax' + idx].minorticks_on()
             self.F['ax' + idx].tick_params(
-              'both', length=8, width=1, which='major')
+              'both', length=8, width=1, which='major', direction='in')
             self.F['ax' + idx].tick_params(
-              'both', length=4, width=1, which='minor')
+              'both', length=4, width=1, which='minor', direction='in')
             self.F['ax' + idx].xaxis.set_minor_locator(MultipleLocator(500.))
             self.F['ax' + idx].xaxis.set_major_locator(MultipleLocator(2000.))         
             self.F['ax' + idx].tick_params(labelleft='off')          
@@ -204,16 +228,6 @@ class Add_Curves(object):
         
         self.D['pEW_obs'] = pkl['pEW_fC']
         self.D['unc_obs'] = pkl['pEW_unc_fC']        
- 
-        #Plot observed spectra at top plot.
-        if self.idx == 0:
-            #self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
-            #               handletextpad=0.5, labelspacing=0, loc=2) 
-            self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
-                           handletextpad=0.5, labelspacing=0,
-                           bbox_to_anchor=(0.415, 0.905),
-                           bbox_transform=plt.gcf().transFigure) 
-
 
     def load_and_plot_synthetic_spectrum(self):
         
@@ -230,7 +244,6 @@ class Add_Curves(object):
                         
             return (path_tardis_output + inp_dir + fname + '/' + fname + '.pkl')
             
-        #colors = ['#d95f02', '#7570b3', '#1b9e77']
         colors = ['#7570b3']
         ls = ['-', ':']
         labels = [r'default', r'$\delta =1$']
@@ -252,8 +265,10 @@ class Add_Curves(object):
 
     def add_legend(self):
         if self.idx == 0:
-            self.ax.legend(frameon=False, fontsize=fs - 1, numpoints=1, ncol=1,
-                           bbox_to_anchor=(0.77,1.05), labelspacing=-0.1)                 
+                self.ax.legend(
+                  frameon=False, fontsize=fs, numpoints=1, ncol=1,
+                  loc=10, bbox_to_anchor=(0.56,0.77), labelspacing=-0.1,
+                  handlelength=1.5, handletextpad=0.2)               
              
     def run_add_curves(self):
         self.set_fig_frame()
@@ -263,6 +278,6 @@ class Add_Curves(object):
         self.add_legend()
                 
 if __name__ == '__main__':
-    Plot_Best(show_fig=True, save_fig=True)
+    Plot_Delta(show_fig=True, save_fig=False)
 
     

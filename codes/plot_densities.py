@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 
-import os                                                               
-import sys
-import itertools                                                        
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
 from astropy import constants as const
 from astropy import units as u
-from scipy.integrate import trapz, cumtrapz
 
 M_sun = const.M_sun.to('g').value
 fs = 26.
@@ -21,14 +17,8 @@ model_isotope_files = [
   'merger_2012_11_09_isotopes.dat', 'doubledet_2012_csdd-s_isotopes.dat']
 model_time = [100.22 * u.s, 100.22 * u.s, 100.07 * u.s, 100.06 * u.s]
 labels = ['DDT N100', 'GCD200', 'Merger', 'Double det.']
-#colors = ['#377eb8', '#377eb8', '#984ea3', '#984ea3', '#a65628', '#a65628']
-#colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#a65628']
 colors = ['#a6cee3','#1f78b4','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']
-
-
-#ls = ['-', '--', '-', '--', '-', '--']
 ls = ['-', '-', '-', '-', '-', '-']
-
 
 def read_hesma(fpath):
     v, dens, C = np.loadtxt(fpath, skiprows=1, usecols=(0, 1, 19), unpack=True)
@@ -49,13 +39,28 @@ def get_mass(v, dens, X, time):
 
 
 class Plot_Models(object):
-    '''Note, metallicity seems to have a nearly negligible impact on the
-    location of carbon
-    '''
+    """
+    Description:
+    ------------
+    Makes three figures, including figures 4 and 5 in the paper.
+    These figures show how the mass fraction of carbon, mass of carbon, or
+    total (mass) density of multiple literature models vary across the ejecta.
+    The chosen x-coordiante is the velocity. 
     
-    def __init__(self, add_tomography=False, show_fig=True, save_fig=True):
+    Notes:
+    ------
+    In the matplotlib version 2.2.2, the color of the hatched region is bugged
+    and will always be set as black. To be fixed in future verisons.
+    
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_model_C.pdf
+    ./../OUTPUT_FILES/FIGURES/Fig_density.pdf
+    ./../OUTPUT_FILES/FIGURES/Fig_C_density.pdf
+    """
+    
+    def __init__(self, show_fig=True, save_fig=True):
         
-        self.add_tomography = add_tomography
         self.show_fig = show_fig
         self.save_fig = save_fig
         
@@ -82,8 +87,10 @@ class Plot_Models(object):
         self.ax_model.set_ylim(1.e-4, 2.)
         self.ax_model.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_model.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax_model.tick_params('both', length=8, width=1, which='major')
-        self.ax_model.tick_params('both', length=4, width=1, which='minor')
+        self.ax_model.tick_params(
+          'both', length=8, width=1, which='major', direction='in')
+        self.ax_model.tick_params(
+          'both', length=4, width=1, which='minor', direction='in')
         self.ax_model.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax_model.xaxis.set_major_locator(MultipleLocator(5000.))  
 
@@ -97,8 +104,10 @@ class Plot_Models(object):
         self.ax_dens.set_ylim(1.e-4, 1.e1)
         self.ax_dens.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_dens.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax_dens.tick_params('both', length=8, width=1, which='major')
-        self.ax_dens.tick_params('both', length=4, width=1, which='minor')
+        self.ax_dens.tick_params(
+          'both', length=8, width=1, which='major', direction='in')
+        self.ax_dens.tick_params(
+          'both', length=4, width=1, which='minor', direction='in')
         self.ax_dens.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax_dens.xaxis.set_major_locator(MultipleLocator(5000.))  
 
@@ -112,14 +121,14 @@ class Plot_Models(object):
         self.ax_Cdens.set_ylim(1.e-6, 1.e0)
         self.ax_Cdens.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_Cdens.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax_Cdens.tick_params('both', length=8, width=1, which='major')
-        self.ax_Cdens.tick_params('both', length=4, width=1, which='minor')
+        self.ax_Cdens.tick_params(
+          'both', length=8, width=1, which='major', direction='in')
+        self.ax_Cdens.tick_params(
+          'both', length=4, width=1, which='minor', direction='in')
         self.ax_Cdens.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax_Cdens.xaxis.set_major_locator(MultipleLocator(5000.))  
 
-
     def add_analysis_regions(self):
-
 
         #Unconstrained regions
         color = '#bababa'
@@ -175,9 +184,7 @@ class Plot_Models(object):
           mpl.patches.Rectangle((11300., 0.01), 12400. - 11300., 0.05 - 0.01,
           hatch=hatch, fill=fill, lw=lw, color=color, zorder=1, alpha=alpha)) 
 
-        #Allowed regions
         color = 'limegreen'
-        #color = 'limegreen'
         alpha = 0.5
         hatch = ''
         fill = True      
@@ -317,8 +324,7 @@ class Plot_Models(object):
     def run_make(self):
         self.set_fig_frame()
         self.add_analysis_regions()
-        if self.add_tomography:
-            self.add_tomography_models()
+        self.add_tomography_models()
         self.add_hesma_models()
         self.load_Shen_2017_ddet_models()
         self.plot_W7_models()
@@ -328,8 +334,5 @@ class Plot_Models(object):
             plt.show()
         
 if __name__ == '__main__':
-    Plot_Models(add_tomography=True, show_fig=True, save_fig=False)
+    Plot_Models(show_fig=True, save_fig=False)
     
-#Try to obtain the following predictions:
-#https://arxiv.org/pdf/1706.01898.pdf (Shen+ 2017)
-#https://arxiv.org/pdf/1002.2173.pdf (Fink+ 2010)
