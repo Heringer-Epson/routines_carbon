@@ -10,7 +10,6 @@ import tardis
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import cPickle
-import new_colormaps as cmaps
 from matplotlib.ticker import MultipleLocator
 from astropy import units as u
 from matplotlib import cm
@@ -25,7 +24,7 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 t_exp_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])
 v_stop = (list(np.arange(10500, 14499., 500.).astype('int').astype('str')))   
 cmap_mock = plt.cm.get_cmap('seismic')
-cmap = cmaps.plasma
+cmap = plt.get_cmap('plasma')
 Norm = colors.Normalize(vmin=0., vmax=len(v_stop) - 1.)
 fs = 20.
 
@@ -45,9 +44,35 @@ texp2L = {'3.7': 0.08e9, '5.9': 0.32e9, '9.0': 1.1e9,
           '22.4': 3.2e9, '28.3': 2.3e9}
 
 class Make_Scan(object):
+    """
+    Description:
+    ------------
+    Makes figure 1 in the paper. Plots the spectra of 11fe TARDIS simulations
+    where the carbon profile of Mazzali+ 2014 is adopted. The color is coded
+    by the depth (in velocity space) below which all carbon is removed.
+    Multiple epochs are ploted and the bottom panels shows the respective
+    pEW of the carbon trough in the optical. 
     
-    def __init__(self, compare_7d=False,
-                 show_fig=True, save_fig=False):
+    Parameters:
+    -----------
+    compare_7d : ~bool
+        If True: Also plot the observed spectra of 11fe at 7 days post-explosion.
+                 used for comparison purposes only--this epoch seems to have
+                 the strongest carbon trough in Parrent+ 2012.
+        If False (default): Does not include the spectra at 7 days.
+    
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_C-scan.pdf
+    ./../OUTPUT_FILES/FIGURES/Fig_C-scan_with-7d-spectra.pdf
+
+    References:
+    -----------
+    Parrent+ 2012: http://adsabs.harvard.edu/abs/2012ApJ...752L..26P
+    MAzzali+ 2014: http://adsabs.harvard.edu/abs/2014MNRAS.439.1959M
+    """
+        
+    def __init__(self, compare_7d=False, show_fig=True, save_fig=False):
 
         self.show_fig = show_fig
         self.save_fig = save_fig
@@ -102,11 +127,11 @@ class Make_Scan(object):
         dx = 0.19
         dy = 0.065
         
-        self.master['axi_o0'] = self.fig.add_axes([xloc, 0.829, dx, dy])
-        self.master['axi_o1'] = self.fig.add_axes([xloc, 0.703, dx, dy])
-        self.master['axi_o2'] = self.fig.add_axes([xloc, 0.577, dx, dy])
-        self.master['axi_o3'] = self.fig.add_axes([xloc, 0.450, dx, dy])
-        self.master['axi_o4'] = self.fig.add_axes([xloc, 0.322, dx, dy])
+        self.master['axi_o0'] = self.fig.add_axes([xloc, 0.812, dx, dy])
+        self.master['axi_o1'] = self.fig.add_axes([xloc, 0.689, dx, dy])
+        self.master['axi_o2'] = self.fig.add_axes([xloc, 0.567, dx, dy])
+        self.master['axi_o3'] = self.fig.add_axes([xloc, 0.446, dx, dy])
+        self.master['axi_o4'] = self.fig.add_axes([xloc, 0.324, dx, dy])
         
         for i, time in enumerate(t_exp_list):
             idx = str(i)
@@ -135,22 +160,22 @@ class Make_Scan(object):
           labelsize=fs, pad=8)      
 
         self.master['ax_0'].tick_params('both', length=8, width=1,
-          which='major')
+          which='major', direction='in')
         self.master['ax_0'].tick_params('both', length=4, width=1,
-          which='minor')
+          which='minor', direction='in')
         self.master['ax_0'].xaxis.set_minor_locator(MultipleLocator(500.))
         self.master['ax_0'].xaxis.set_major_locator(MultipleLocator(2000.))        
         self.master['ax_0'].tick_params(labelleft='off')          
-        self.master['ax_0'].tick_params(labelbottom='off')          
+        self.master['ax_0'].tick_params(labelbottom='off')
        
         for idx in ['1', '2', '3', '4']:
             self.master['ax_' + idx].set_yscale('log')      
             self.master['ax_' + idx].tick_params(labelleft='off')          
             self.master['ax_' + idx].tick_params(labelbottom='off')    
             self.master['ax_' + idx].tick_params('both', length=8, width=1,
-              which='major')
+              which='major', direction='in')
             self.master['ax_' + idx].tick_params('both', length=4, width=1,
-              which='minor')
+              which='minor', direction='in')
             if idx == '4':
                 self.master['ax_' + idx].set_xlabel(x_label, fontsize=fs,
                                                     labelpad=2.)    
@@ -168,17 +193,15 @@ class Make_Scan(object):
           labelsize=fs, pad=8)
         self.master['ax_bot'].minorticks_on()
         self.master['ax_bot'].tick_params('both', length=8, width=1,
-          which='major')
-        self.master['ax_bot'].tick_params('y', length=4, width=1,
-          which='minor')
+          which='major', direction='in')
+        self.master['ax_bot'].tick_params('both', length=4, width=1,
+          which='minor', direction='in')
         self.master['ax_bot'].xaxis.set_major_locator(MultipleLocator(2.))   
         self.master['ax_bot'].xaxis.set_minor_locator(MultipleLocator(1.))   
         self.master['ax_bot'].yaxis.set_major_locator(MultipleLocator(5.))  
         self.master['ax_bot'].yaxis.set_minor_locator(MultipleLocator(1.))
 
     def make_bottom_plot(self):
-        
-        
         t_exp_values = t_exp_list.astype(float)
         offset = 0.03
         
@@ -196,12 +219,13 @@ class Make_Scan(object):
                 self.master['v-' + str(int(v)) + '_pEW'].append(self.master[t]['pEW'][i])
                 self.master['v-' + str(int(v)) + '_unc'].append(self.master[t]['unc'][i])
 
-        #Plot velocity curves and observed data.
+        #Plot velocity curves and observed data.        
+        epochs = [float(t) for t in t_exp_list]
         self.master['ax_bot'].errorbar(
-          t_exp_list, self.master['pEW_obs'],
-          yerr=self.master['unc_obs'],
+          epochs, self.master['pEW_obs'],
+          yerr=np.asarray(self.master['unc_obs']),
           color='k', ls='-', lw=2., marker='p', markersize=15., capsize=0.,
-          label=r'$\mathrm{SN\ 2011fe}$')        
+          label=r'$\rm{SN\ 2011fe}$')        
 
         for i, v in enumerate(v_stop):
             self.master['ax_bot'].errorbar(
@@ -218,11 +242,9 @@ class Make_Scan(object):
         
     def save_figure(self):        
         if self.save_fig:
-            
-            fname = 'Fig_11fe_C-scan_log'
+            fname = 'Fig_C-scan'
             if self.compare_7d:
-                fname += '_comp'
-
+                fname += '_with-7d-spectra'
             directory = './../OUTPUT_FILES/FIGURES/'
             plt.savefig(directory + fname + '.pdf', format='pdf', dpi=360,
                         bbox_inches='tight')
@@ -265,8 +287,10 @@ class Add_Curves(object):
         self.axi_o.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
         self.axi_o.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
         self.axi_o.minorticks_on()
-        self.axi_o.tick_params('both', length=8, width=1, which='major', pad=2)
-        self.axi_o.tick_params('both', length=4, width=1, which='minor', pad=2)
+        self.axi_o.tick_params(
+          'both', length=8, width=1, which='major', pad=2, direction='in')
+        self.axi_o.tick_params(
+          'both', length=4, width=1, which='minor', pad=2, direction='in')
         self.axi_o.xaxis.set_minor_locator(MultipleLocator(50.))
         self.axi_o.xaxis.set_major_locator(MultipleLocator(150.))
         self.axi_o.yaxis.set_minor_locator(MultipleLocator(0.05))
@@ -286,11 +310,12 @@ class Add_Curves(object):
         with open(directory + texp2date[self.t_exp] + '.pkl', 'r') as inp:
             pkl = cPickle.load(inp)
             flux_raw = pkl['flux_raw'] / pkl['norm_factor']
-            self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                         color='k', ls='-', lw=3., zorder=2.,
-                         label=r'$\mathrm{SN\ 2011fe}$')
-            self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
-                         color='k', ls='-', lw=3., zorder=2.)            
+            self.ax.plot(
+              pkl['wavelength_corr'], flux_raw, color='k', ls='-', lw=3.,
+              zorder=2., label=r'$\mathrm{SN\ 2011fe}$')
+            self.axi_o.plot(
+              pkl['wavelength_corr'], flux_raw, color='k', ls='-', lw=3.,
+              zorder=2.)            
 
         #Plot Si feature label.
         x = pkl['wavelength_minima_f7']
@@ -332,14 +357,11 @@ class Add_Curves(object):
 
         #Plot observed spectra at top plot.
         if self.idx == 0:
-            #self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
-            #               handletextpad=0.5, labelspacing=0, loc=2) 
-            self.ax.legend(frameon=False, fontsize=20., numpoints=1, ncol=1,
-                           handletextpad=0.5, labelspacing=0,
-                           bbox_to_anchor=(0.415, 0.905),
-                           bbox_transform=plt.gcf().transFigure) 
-
-           
+            self.ax.legend(
+              frameon=False, fontsize=fs, numpoints=1, ncol=1,
+              loc=2, bbox_to_anchor=(0.,1.10), labelspacing=-0.1,
+              handlelength=1.5, handletextpad=0.2)  
+       
 
     def load_and_plot_synthetic_spectrum(self):
         
@@ -381,7 +403,7 @@ class Add_Curves(object):
         return self.D
                 
 if __name__ == '__main__':
-    Make_Scan(compare_7d=False, show_fig=True, save_fig=True)
-    #Make_Scan(compare_7d=True, show_fig=True, save_fig=True)
+    #Make_Scan(compare_7d=False, show_fig=False, save_fig=True)
+    Make_Scan(compare_7d=True, show_fig=False, save_fig=True)
 
     
