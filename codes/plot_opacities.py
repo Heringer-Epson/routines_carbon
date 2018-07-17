@@ -48,13 +48,10 @@ class Make_Slab(object):
     -----------
     Z : ~int
         Atomic number.
-    
     ionization : ~int
         Ion number. (0 is neutral, 1 is singly ionized and so on).
-
     lvl_low : ~int
         Atomic level of the lower state to be used. Values follow TARDIS usage.
-
     lvl_up : ~int
         Atomic level of the upper state to be used. Values follow TARDIS usage.      
       

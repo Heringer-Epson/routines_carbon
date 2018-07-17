@@ -39,7 +39,6 @@ class Make_Slab(object):
     containing the range of masses that can reproduce the data (see paper for
     details of how the acceptable mass fractions are assessed).
     
-    
     Outputs:
     --------
     ./../OUTPUT_FILES/TABLES/tb_quantities.txt 

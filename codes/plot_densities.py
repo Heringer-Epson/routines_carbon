@@ -7,6 +7,8 @@ from matplotlib.ticker import MultipleLocator
 from astropy import constants as const
 from astropy import units as u
 
+mpl.rcParams['hatch.color'] = '#e41a1c'
+
 M_sun = const.M_sun.to('g').value
 fs = 26.
 
@@ -42,19 +44,20 @@ class Plot_Models(object):
     """
     Description:
     ------------
-    Makes three figures, including figures 4 and 5 in the paper.
+    Makes three figures, including figure 5 in the carbon paper.
     These figures show how the mass fraction of carbon, mass of carbon, or
     total (mass) density of multiple literature models vary across the ejecta.
     The chosen x-coordiante is the velocity. 
-    
+
     Notes:
     ------
-    In the matplotlib version 2.2.2, the color of the hatched region is bugged
-    and will always be set as black. To be fixed in future verisons.
+    Figure Fig_model_implII.pdf is really just another attempt to make this
+    plot and does not provide any different insigths than the figure produced
+    by plot_model_comparison.py
     
     Outputs:
     --------
-    ./../OUTPUT_FILES/FIGURES/Fig_model_C.pdf
+    ./../OUTPUT_FILES/FIGURES/Fig_model_implII.pdf
     ./../OUTPUT_FILES/FIGURES/Fig_density.pdf
     ./../OUTPUT_FILES/FIGURES/Fig_C_density.pdf
     """
@@ -308,7 +311,7 @@ class Plot_Models(object):
             
             plt.figure(1)
             plt.tight_layout()   
-            plt.savefig(directory + 'Fig_model_C.pdf', format='pdf',
+            plt.savefig(directory + 'Fig_model_implII.pdf', format='pdf',
                 bbox_inches='tight', dpi=360)
             
             plt.figure(2)
@@ -334,5 +337,5 @@ class Plot_Models(object):
             plt.show()
         
 if __name__ == '__main__':
-    Plot_Models(show_fig=True, save_fig=False)
+    Plot_Models(show_fig=True, save_fig=True)
     

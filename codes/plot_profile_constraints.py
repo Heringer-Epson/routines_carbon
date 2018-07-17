@@ -1,17 +1,11 @@
 #!/usr/bin/env python
-
-import os                                                               
-import sys
-import itertools                                                        
+                                                 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MultipleLocator
-from astropy import constants as const
-from astropy import units as u
-from scipy.integrate import trapz, cumtrapz
 
-M_sun = const.M_sun.to('g').value
+mpl.rcParams['hatch.color'] = '#e41a1c'
 
 mass_fractions = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00', '2.00', '5.00', '10.00']
 labels = [r'$\mathrm{0}$', r'$\mathrm{5\times 10^{-4}}$', r'$\mathrm{10^{-3}}$',
@@ -19,14 +13,20 @@ labels = [r'$\mathrm{0}$', r'$\mathrm{5\times 10^{-4}}$', r'$\mathrm{10^{-3}}$',
           r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
           r'$\mathrm{5\times 10^{-2}}$', r'$\mathrm{10^{-1}}$']
 velocities = [7850., 9000., 10700., 11300., 12400., 13300., 16000.]
+fs = 22.
 
-fs = 26.
-fs2 = 32.
-
-class Plot_Models(object):
-    '''Note, metallicity seems to have a nearly negligible impact on the
-    location of carbon
-    '''
+class Plot_Constraints(object):
+    """
+    Description:
+    ------------
+    Makes Fig. 3 in the carbon paper. This code plots the the region of the
+    carbon mass fraction - velocity space that is ruled out by the analysis
+    in the paper.
+    
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_model_constraints.pdf
+    """
     
     def __init__(self, show_fig=True, save_fig=True):
         
@@ -42,15 +42,17 @@ class Plot_Models(object):
         x_label = r'$v\ \ \rm{[km\ \ s^{-1}]}$'
         y_label = r'$X(\rm{C})$'
 
-        self.ax.set_xlabel(x_label, fontsize=fs2)
-        self.ax.set_ylabel(y_label, fontsize=fs2)
+        self.ax.set_xlabel(x_label, fontsize=fs + 6.)
+        self.ax.set_ylabel(y_label, fontsize=fs + 6.)
         self.ax.set_xlim(velocities[0], velocities[-1])
         self.ax.set_ylim(0, len(mass_fractions) - 1)
         self.ax.set_yticklabels(labels)
-        self.ax.tick_params(axis='y', which='major', labelsize=fs2, pad=12)       
-        self.ax.tick_params(axis='x', which='major', labelsize=fs2, pad=12)
-        self.ax.tick_params('both', length=8, width=1, which='major')
-        self.ax.tick_params('both', length=4, width=1, which='minor')
+        self.ax.tick_params(axis='y', which='major', labelsize=fs + 6., pad=12)       
+        self.ax.tick_params(axis='x', which='major', labelsize=fs + 6., pad=12)
+        self.ax.tick_params(
+          'both', length=8, width=1, which='major', direction='in')
+        self.ax.tick_params(
+          'both', length=4, width=1, which='minor', direction='in')
         self.ax.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax.xaxis.set_major_locator(MultipleLocator(2000.))  
 
@@ -87,12 +89,12 @@ class Plot_Models(object):
 
     def add_texts(self):
        
-        string = '$t=5.9,\ 9\ \mathrm{and}\ 12.1\ \mathrm{days}$'
+        string = '$t=5.9,\ 9\ \mathrm{and}\ 12.1\ \mathrm{d}$'
         self.ax.text(
           14630., 2, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=9\ \mathrm{days}$'
+        string = '$t=9\ \mathrm{d}$'
         self.ax.text(
           14700., 7.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
@@ -102,22 +104,22 @@ class Plot_Models(object):
           10700., 7.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=19.1$\n$\mathrm{days}$'
+        string = '$t=19.1\ \mathrm{d}$'
         self.ax.text(
           8410., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=16.1\ \mathrm{days}$'
+        string = '$t=16.1\ \mathrm{d}$'
         self.ax.text(
           9850., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'))
 
-        string = '$t=12.1\ \mathrm{days}$'
+        string = '$t=12.1\ \mathrm{d}$'
         self.ax.text(
           11000., 5.5, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w'), rotation=90)                                               
 
-        string = '$t=9$\n$\mathrm{days}$'
+        string = '$t=9\ \mathrm{d}$'
         self.ax.text(
           11850., 6, string, color='k', fontsize=fs, ha='center', va='center',
           bbox=dict(facecolor='w', edgecolor='w')) 
@@ -137,8 +139,4 @@ class Plot_Models(object):
             plt.show()
         
 if __name__ == '__main__':
-    Plot_Models(show_fig=True, save_fig=True)
-    
-#Try to obtain the following predictions:
-#https://arxiv.org/pdf/1706.01898.pdf (Shen+ 2017)
-#https://arxiv.org/pdf/1002.2173.pdf (Fink+ 2010)
+    Plot_Constraints(show_fig=True, save_fig=True)

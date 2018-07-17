@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import os                                                               
-import sys
-
 path_tardis_output = os.environ['path_tardis_output']
 
 import numpy as np
@@ -11,7 +9,6 @@ from astropy import units as u
 
 XC_o = '1.00'
 XC_i = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00']
-#XC_i = ['0.00']
 
 def get_fname(s1, s2): 
     case_folder = '11fe_19d_C-plateaus_scaling/'
@@ -20,7 +17,19 @@ def get_fname(s1, s2):
     return path_tardis_output + fname 
     
 class Write_Opacities(object):
-    """TBW   
+    """
+    Description:
+    ------------
+    This code creates a short table containing the the maximum opacity at the
+    inner region (7850 < v < 13300 km/s) for different choices of inner carbon
+    mass fraction. These numbers are used in 5.3 of the carbon paper to give an
+    idea of how the maximum opacity reflects (as expecetd) the presence or not
+    of a carbon trough depending on the choice of X(C)_inner. The simulations
+    adopt the 'standard' (best) X(C)_outer=0.01  
+
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/OTHER/max_taus_at_max.txt
     """
     
     def __init__(self):
@@ -28,7 +37,7 @@ class Write_Opacities(object):
 
     def write_output(self):
 
-        directory = './../OUTPUT_FILES/OTHERS/'
+        directory = './../OUTPUT_FILES/OTHER/'
         with open(directory + 'max_taus_at_max.txt', 'w') as out:
             out.write('Record of the maximum opacity in the inner region '\
                       + '(7850 < v < 13300 km/s) for models at maximum using '\
@@ -48,5 +57,3 @@ class Write_Opacities(object):
                                     
 if __name__ == '__main__': 
     Write_Opacities()
-
- 

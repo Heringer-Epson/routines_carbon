@@ -4,6 +4,8 @@ from astropy import units as u
 
 def make_bin(vel_read, dens_read, time, fb, cb):
     """
+    Description:
+    ------------
     Compute quantities in extremely fine bins of 1 km/s which can then
     be integrate to obtain the mass in larger bins. This prevents
     cases where the density between two ejecta layers changes in
