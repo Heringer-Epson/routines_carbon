@@ -221,12 +221,11 @@ class Plot_Models(object):
         Cdens_100 = np.multiply(dens, C) 
     
         #Plot original work.
-        self.ax_model.step(v, C, ls='-', color='k', lw=4., where='post',
+        self.ax_model.plot(v, C, ls='--', color='k', lw=4., drawstyle='steps',
                            zorder=4., label=r'SN 2011fe')
-
-        self.ax_dens.step(v, dens, ls='-', color='k', lw=4., where='post',
+        self.ax_dens.plot(v, dens, ls='--', color='k', lw=4., drawstyle='steps',
                           zorder=4., label=r'SN 2011fe')
-        self.ax_Cdens.step(v, dens, ls='-', color='k', lw=4., where='post',
+        self.ax_Cdens.plot(v, dens, ls='--', color='k', lw=4., drawstyle='steps',
                            zorder=4., label=r'SN 2011fe')
 
     def add_hesma_models(self):
@@ -328,9 +327,9 @@ class Plot_Models(object):
         self.set_fig_frame()
         self.add_analysis_regions()
         self.add_tomography_models()
+        self.plot_W7_models()
         self.add_hesma_models()
         self.load_Shen_2017_ddet_models()
-        self.plot_W7_models()
         self.add_legend()
         self.save_figure()
         if self.show_fig:
