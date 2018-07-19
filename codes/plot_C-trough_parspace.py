@@ -105,14 +105,14 @@ class Ctrough_Spectra(object):
 
         #Set colormap preferences.
         self.cmap_mock = plt.cm.get_cmap('seismic')
-        self.cmap = plt.get_cmap('viridis')
+        #self.cmap = plt.get_cmap('viridis')
+        self.cmap = plt.get_cmap('Blues')
         
         #Two option of color schemes. The viridis one does not use the full color range
         #on purpose (yellow rejected). Set this by upper value - default=0.9
-        self.palette = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
-                        '#ffff33', '#a65628', '#f781bf', '#999999']
         self.palette = [self.cmap(value) for value in
-                        np.arange(0., 0.901, 0.90 / (self.N_s2 - 1.))]
+                        np.arange(0.4, 1.001, (1. - 0.4) / (self.N_s2 - 1.))]
+                        #np.arange(0., 0.991, 0.99 / (self.N_s2 - 1.))]
         self.palette = self.palette[0:self.N_s2]       
                 
         self.run_make()
@@ -245,7 +245,7 @@ class Ctrough_Spectra(object):
         cbar = plt.colorbar(aux_mappable, cax=self.F['bar_ax'])
         cbar.set_ticks(range(self.N_s2))
         cbar.ax.tick_params(width=1, labelsize=fs)
-        cbar_label = (r'$X(\rm{C}) \ \mathrm{[\%]}$ at 13300 $\leq\ v \ \leq$'\
+        cbar_label = (r'$X(\rm{C})$ at 13300 $\leq\ v \ \leq$'\
                       r' 16000$ \ \mathrm{[km\ s^{-1}]}$')
         cbar.set_label(cbar_label, fontsize=fs)     
         cbar.set_ticklabels(self.s2_labels)
@@ -268,7 +268,7 @@ class Ctrough_Spectra(object):
         plt.close()        
 
 if __name__ == '__main__':
-    Ctrough_Spectra(region='optical', show_fig=True, save_fig=False)
-    #Ctrough_Spectra(region='NIR', show_fig=True, save_fig=True)
+    Ctrough_Spectra(region='optical', show_fig=True, save_fig=True)
+    Ctrough_Spectra(region='NIR', show_fig=True, save_fig=True)
 
     

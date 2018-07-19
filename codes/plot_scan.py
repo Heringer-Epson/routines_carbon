@@ -25,7 +25,16 @@ t_exp_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])
 v_stop = (list(np.arange(10500, 14499., 500.).astype('int').astype('str')))   
 cmap_mock = plt.cm.get_cmap('seismic')
 cmap = plt.get_cmap('plasma')
-Norm = colors.Normalize(vmin=0., vmax=len(v_stop) - 1.)
+cmap = plt.get_cmap('Reds')
+
+N = len(v_stop)
+Norm = colors.Normalize(vmin=0., vmax=N - 1.)
+palette = [cmap(value) for value in
+           np.arange(0.2, 1.001, (1. - 0.2) / (N - 1.))]
+palette = palette[0:N]   
+
+cmap_D = cmap_mock.from_list('irrel', palette, N)
+
 fs = 20.
 
 def lum2loglum(lum):
@@ -109,9 +118,9 @@ class Make_Scan(object):
         self.master['ax_cbar'] = plt.subplot2grid(
           (240, 20), (203, 16), rowspan=37, colspan=1)
                 
-        N = len(v_stop)
-        color_disc = cmap(np.linspace(0, 1, N))
-        cmap_D = cmap_mock.from_list('irrel', color_disc, N)
+        #N = len(v_stop)
+        #color_disc = cmap(np.linspace(0, 1, N))
+        #cmap_D = cmap_mock.from_list('irrel', color_disc, N)
         
         aux_mappable = mpl.cm.ScalarMappable(cmap=cmap_D, norm=Norm)
         aux_mappable.set_array([])
@@ -231,7 +240,7 @@ class Make_Scan(object):
             self.master['ax_bot'].errorbar(
               t_exp_values + (-2. + i) * offset, self.master['v-' + str(int(v)) + '_pEW'],
               yerr=self.master['v-' + str(int(v)) + '_unc'],
-              color=cmap(Norm(i)), ls='-', lw=2., marker=None, capsize=0.)
+              color=palette[i], ls='-', lw=2., marker=None, capsize=0.)
 
         self.master['ax_bot'].legend(
           frameon=False, fontsize=fs - 4., numpoints=1, ncol=1,
@@ -378,10 +387,10 @@ class Add_Curves(object):
                     self.pkl_list.append(pkl)
                     flux_raw = pkl['flux_raw'] / pkl['norm_factor']
                     self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                                 color=cmap(Norm(i)), ls='-', lw=2.,
+                                 color=palette[i], ls='-', lw=2.,
                                  zorder=1.)
                     self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
-                                       color=cmap(Norm(i)), ls='-', lw=2.,
+                                       color=palette[i], ls='-', lw=2.,
                                        zorder=1.)
                                        
                     pEW = pkl['pEW_fC']
@@ -403,7 +412,7 @@ class Add_Curves(object):
         return self.D
                 
 if __name__ == '__main__':
-    #Make_Scan(compare_7d=False, show_fig=False, save_fig=True)
+    Make_Scan(compare_7d=False, show_fig=False, save_fig=True)
     Make_Scan(compare_7d=True, show_fig=False, save_fig=True)
 
     

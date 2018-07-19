@@ -21,8 +21,10 @@ class List_Properties(object):
                 + '/' + fname + '.hdf'
 
         f = h5py.File(fpath, 'r')
-        print list(f['simulation'])
-        print list(f['simulation']['plasma'])
+        #print list(f['simulation'])
+        #print list(f['simulation']['plasma'])
+        #print list(f['simulation']['plasma']['tau_sobolevs'])
+        print list(f['simulation']['plasma']['lines'])
                             
 if __name__ == '__main__': 
     List_Properties()

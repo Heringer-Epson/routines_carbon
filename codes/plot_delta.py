@@ -132,8 +132,8 @@ if __name__ == '__main__':
     #fname = 'velocity_start-10700_loglum-9.362_line_interaction-downbranch_C-F2-1.00_C-F1-0.2_time_explosion-12.1'
     #syn_list = [path_tardis_output + '11fe_best_delta/' + fname + '/' + fname]
 
-    #fname = 'seed-23111970'
-    #syn_list = [path_tardis_output + 'fast_single_blank/' + fname + '/' + fname]
+    fname = 'seed-23111970'
+    syn_list = [path_tardis_output + 'fast_single_blank/' + fname + '/' + fname]
 
     Plot_Delta(syn_list, Z=6, ion=1, show_fig=True, save_fig=False)
 

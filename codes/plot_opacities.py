@@ -61,6 +61,10 @@ class Make_Slab(object):
     an atomic transition. The bottom panel shows the number density of a given
     atomic level (normalized by the number density of carbon). By convention,
     the number density of the *lower* level is plotted.
+
+    Outputs:
+    --------
+    ./../OUTPUT_FILES/FIGURES/Fig_opacity_Z_ion_lvl.pdf
     """
     
     def __init__(self, syn_list, Z=6, ionization=1, lvl_low=10, lvl_up=11,
@@ -144,8 +148,10 @@ class Make_Slab(object):
         self.ax_top.set_ylim(1.e-5,1.e1)
         self.ax_top.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_top.tick_params(axis='x', which='major', labelsize=fs, pad=8)
-        self.ax_top.tick_params('both', length=8, width=1, which='major')
-        self.ax_top.tick_params('both', length=4, width=1, which='minor')
+        self.ax_top.tick_params(
+          'both', length=8, width=1, which='major', direction='in')
+        self.ax_top.tick_params(
+          'both', length=4, width=1, which='minor', direction='in')
         self.ax_top.xaxis.set_minor_locator(MultipleLocator(1000.))
         self.ax_top.xaxis.set_major_locator(MultipleLocator(5000.)) 
         
@@ -154,8 +160,10 @@ class Make_Slab(object):
         self.ax_bot.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_bot.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax_bot.minorticks_off()
-        self.ax_bot.tick_params('both', length=8, width=1, which='major')
-        self.ax_bot.tick_params('both', length=4, width=1, which='minor')    
+        self.ax_bot.tick_params(
+          'both', length=8, width=1, which='major', direction='in')
+        self.ax_bot.tick_params(
+          'both', length=4, width=1, which='minor', direction='in')    
 
     def retrieve_number_dens(self):
         
@@ -378,7 +386,6 @@ class Make_Slab(object):
                 #print i, np.log10(density[0]), np.log10(t_rad[0])
                 self.ax_bot.plot(self.T2axis(t_rad), self.dens2axis(density),
                         color=color[i], ls='-', lw=3.)
-            
                 #Find velocity reference markers.
                 for j, v in enumerate(mark_velocities):
                     v_diff = np.abs(v_inner - v)
@@ -461,7 +468,7 @@ if __name__ == '__main__':
                      + '/' + fname for t in t_label]  
 
     #Make_Slab(syn_list, Z=6, ionization=0, lvl_low=11, lvl_up=19,
-    #          show_fig=True, save_fig=False)
+    #          show_fig=True, save_fig=True)
 
     Make_Slab(syn_list, Z=6, ionization=1, lvl_low=10, lvl_up=12,
-              show_fig=True, save_fig=True)    
+              show_fig=True, save_fig=False)    

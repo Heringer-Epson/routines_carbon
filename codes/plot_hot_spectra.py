@@ -40,29 +40,32 @@ texp2logL = {'3.7': '7.903', '5.9': '8.505', '9.0': '9.041',
           '12.1': '9.362', '16.1': '9.505', '19.1': '9.544',
           '22.4': '9.505', '28.3': '9.362'}
 
-class Plot_Delta(object):
+texp2logL_hot = {'3.7': '7.982', '5.9': '8.584', '9.0': '9.121',
+          '12.1': '9.441', '16.1': '9.584', '19.1': '9.623',
+          '22.4': '9.584', '28.3': '9.441'}
+
+class Plot_Hot(object):
     """
     Description:
     ------------
     Similarly to the 'plot_best_models.py; routine, this code will plot, for
     multiple photospheric epochs, the TARDIS spectra computed for the 'best'
-    models (see paper) computed under two modes: in the first mode, the
-    delta parameter (see references below) is not set (default) and in the
-    second mode, it's set to 1.
+    models (see paper). In one case, we plot our fiducial spectra and in the
+    other we plot spectra computed where the fiducial luminosity was
+    increased by 30% at all epochs (typical L for overluminous
+    events [Sahu+ 2006]).
     
-    This provides a comparison that may help to evaluate how well this
-    parameter is taking into account high opacities in the UV. Such opacities
-    may deplete the pool of photons that would otherwise ionize C and O.
-
+    This provides a comparison that may help to evaluate whether or not we
+    should expect the carbon trough in the optical to be stronger in
+    overluminous SNe~Ia, as discussed in section 5.4 of the carbon paper.
+      
     Outputs:
     --------
-    ./../OUTPUT_FILES/FIGURES/Fig_compare_delta_spectra.pdf' 
-
+    ./../OUTPUT_FILES/FIGURES/Fig_compare_hot_spectra.pdf'
+    
     References:
-    -----------
-    Mazzali & Lucy 1993: http://adsabs.harvard.edu/abs/1993A%26A...279..447M
-    Marion+ 2006: http://adsabs.harvard.edu/abs/2006ApJ...645.1392M
-    TARDIS: http://adsabs.harvard.edu/abs/2014MNRAS.440..387K    
+    -----------    
+    http://adsabs.harvard.edu/abs/2006MNRAS.366..682S 
     """
     
     def __init__(self, show_fig=True, save_fig=False):
@@ -132,7 +135,7 @@ class Plot_Delta(object):
             
     def save_figure(self):
         if self.save_fig:
-            fname = 'Fig_compare_delta_spectra.pdf'   
+            fname = 'Fig_compare_hot_spectra.pdf'   
             directory = './../OUTPUT_FILES/FIGURES/'
             plt.savefig(directory + fname,
                         format='pdf', dpi=360, bbox_inches='tight')
@@ -228,26 +231,26 @@ class Add_Curves(object):
     def load_and_plot_synthetic_spectrum(self):
         
         def make_fpath(delta, XCi, XCo):
-            if delta == 'default':
+            if mode == 'default':
                 inp_dir =  '11fe_' + self.t + 'd_C-best/'
                 fname = ('line_interaction-downbranch_excitation-dilute-lte_C-F2-'
                          + XCo + '_C-F1-' + XCi)
-            elif delta == '1':
-                inp_dir =  '11fe_best_delta/'
+            elif mode == 'hot':
+                inp_dir =  '11fe_best_hot/'
                 fname = ('velocity_start-' + texp2v[self.t_exp] + '_loglum-'
-                         + texp2logL[self.t_exp] + '_line_interaction-downbranch_C-F2-'
+                         + texp2logL_hot[self.t_exp] + '_line_interaction-downbranch_C-F2-'
                          + XCo + '_C-F1-' + XCi + '_time_explosion-' + self.t_exp)            
                         
             return (path_tardis_output + inp_dir + fname + '/' + fname + '.pkl')
             
-        colors = ['#4daf4a']
+        colors = ['#ff7f00']
         ls = ['-', ':']
-        labels = [r'default', r'$\delta =1$']
+        labels = [r'default', r'$L=1.3\times L_{\mathrm{11fe}}$']
         
-        for j, delta in enumerate(['default', '1']):
+        for j, mode in enumerate(['default', 'hot']):
             for i, (XCi, XCo) in enumerate(zip(['0.2'], ['1.00'])):
 
-                with open(make_fpath(delta, XCi, XCo), 'r') as inp:
+                with open(make_fpath(mode, XCi, XCo), 'r') as inp:
                     pkl = cPickle.load(inp)
                     
                     flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
@@ -274,6 +277,6 @@ class Add_Curves(object):
         self.add_legend()
                 
 if __name__ == '__main__':
-    Plot_Delta(show_fig=True, save_fig=False)
+    Plot_Hot(show_fig=True, save_fig=False)
 
     
