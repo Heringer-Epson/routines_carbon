@@ -67,9 +67,8 @@ class Compare_Early(object):
                          color='k', lw=2., label=r'SN 2011fe : obs')
                              
     def plot_synthetic_spectrum(self):
-        inp_dir = path_tardis_output + '11fe_default_L-scaled/'
-        fname = 'velocity_start-13300_loglum-7.903_line_interaction-downbranch'\
-                + '_time_explosion-3.7'
+        inp_dir = path_tardis_output + '11fe_4d_C-best/'
+        fname = 'line_interaction-downbranch_C-F2-1.00_C-F1-0.2'
         with open(inp_dir + fname + '/' + fname + '.pkl', 'r') as inp:
             pkl = cPickle.load(inp)              
             self.ax.plot(pkl['wavelength_corr'], pkl['flux_normalized'],
@@ -93,4 +92,4 @@ class Compare_Early(object):
             plt.show()
                     
 if __name__ == '__main__':
-    Compare_Early(show_fig=True, save_fig=True)
+    Compare_Early(show_fig=True, save_fig=False)

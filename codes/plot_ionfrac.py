@@ -15,12 +15,9 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-L_list = ['8.505', '9.041', '9.362', '9.505', '9.544']
-t_list = ['5.9', '9.0', '12.1', '16.1', '19.1']
-t_label = ['6', '9', '12', '16', '19']
-v_list = ['12400', '11300', '10700', '9000', '7850']
-
-color = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+t_list = ['3.7', '5.9', '9.0', '12.1', '16.1', '19.1']
+t_label = ['4', '6', '9', '12', '16', '19']
+color = ['c', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
 
 Z2el = {6: 'C', 8: 'O', 14: 'Si', 26: 'Fe'}
 ion2symbol = {0: 'I', 1: 'II', 2: 'III'}
@@ -88,7 +85,7 @@ class Plot_Ionfractions(object):
         self.ax.set_xlabel(x_label, fontsize=20.)
         self.ax.set_ylabel(y_label, fontsize=20.)
         self.ax.set_xlim(7500.,24000.)
-        self.ax.set_ylim(1.e-12,1.e0)
+        self.ax.set_ylim(1.e-12,1.5)
         
         #Adding log ticks by hand. This is necessary when the log scale
         #spans more than 10 orders of magnitude, as is the case here.
@@ -111,17 +108,16 @@ class Plot_Ionfractions(object):
                 
         for i, syn in enumerate((self.syn_list)):
             v, fI, fII, fIII = retrieve_number_dens(syn, self.Z)
-            
-            self.ax.plot(v, fI, ls='-', lw=2., marker='None', color=color[i])
-            self.ax.plot(v, fII, ls='--', lw=2., marker='None', color=color[i])
-            self.ax.plot(v, fIII, ls=':', lw=2., marker='None', color=color[i])
+            self.ax.plot(v, fI, ls='-', lw=3., marker='None', color=color[i])
+            self.ax.plot(v, fII, ls='--', lw=3., marker='None', color=color[i])
+            self.ax.plot(v, fIII, ls=':', lw=3., marker='None', color=color[i])
 
     def make_legend(self):
-        self.ax.plot([np.nan], [np.nan], ls='-', lw=2., color='k',
+        self.ax.plot([np.nan], [np.nan], ls='-', lw=3., color='k',
                      label=r'$\mathrm{X=I}$')
-        self.ax.plot([np.nan], [np.nan], ls='--', lw=2., color='k',
+        self.ax.plot([np.nan], [np.nan], ls='--', lw=3., color='k',
                      label=r'$\mathrm{X=II}$')
-        self.ax.plot([np.nan], [np.nan], ls=':', lw=2., color='k',
+        self.ax.plot([np.nan], [np.nan], ls=':', lw=3., color='k',
                      label=r'$\mathrm{X=III}$')
         for i in range(len(self.syn_list)):
             self.ax.plot([np.nan], [np.nan], ls='-', lw=10., color=color[i],
@@ -146,24 +142,9 @@ class Plot_Ionfractions(object):
         self.manage_output()
         
 if __name__ == '__main__': 
-    
-    #Mazzali profiles.
-    case_folder = path_tardis_output + '11fe_default_L-scaled/'
-    f1 = 'velocity_start-'
-    f2 = '_loglum-'
-    f3 = '_line_interaction-downbranch_time_explosion-'
-    syn_list_orig = [case_folder + (f1 + v + f2 + L + f3 + t) + '/'
-                     + (f1 + v + f2 + L + f3 + t)
-                     for (v, L, t) in zip(v_list, L_list, t_list)]
-
-    #Accepted model profile
-    X_i = '0.2'
-    X_o = '1.00'
-
-    fname = 'line_interaction-downbranch_excitation-dilute-lte_'\
-            + 'C-F2-' + X_o + '_C-F1-' + X_i
+    fname = 'line_interaction-downbranch_' + 'C-F2-1.00_C-F1-0.2'
     syn_list = [path_tardis_output + '11fe_' + t + 'd_C-best/' + fname
                      + '/' + fname for t in t_label]  
 
-    Plot_Ionfractions(syn_list, Z=8, show_fig=True, save_fig=False)
+    Plot_Ionfractions(syn_list, Z=6, show_fig=True, save_fig=True)
 

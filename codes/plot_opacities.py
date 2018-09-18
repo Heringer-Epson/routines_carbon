@@ -18,22 +18,36 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-L_list = ['8.505', '9.041', '9.362', '9.505', '9.544']
-t_list = ['5.9', '9.0', '12.1', '16.1', '19.1']
-t_label = ['6', '9', '12', '16', '19']
-v_list = ['12400', '11300', '10700', '9000', '7850']
+L_list = ['7.903', '8.505', '9.041', '9.362', '9.505', '9.544']
+t_list = ['3.7', '5.9', '9.0', '12.1', '16.1', '19.1']
+t_label = ['4', '6', '9', '12', '16', '19']
+v_list = ['13300', '12400', '11300', '10700', '9000', '7850']
 
-color = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
-marker = ['^', 's', 'p', 'D', 'v']
-mark_velocities = [9000., 11000., 13300., 16000., 20000.] * u.km / u.s
+color = ['c', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+marker = ['*', '^', 's', 'p', 'D', 'v']
+mark_velocities = [9000., 11000., 13500., 16000., 19000.] * u.km / u.s
 
 Z2el = {6: 'C', 8: 'O', 14: 'Si', 26: 'Fe'}
 ion2symbol = {0: 'I', 1: 'II', 2: 'III'}
-transition2symbol = {None: '', 10: '2s^23s', 11: '2s^22p3s', 12: '2s^23p', 19: '2s^22p3s'}
+line2symbol = {None: '', '6580': '2s^23s', '10693': '2s^22p3s'}
 transition2str = {None: '', 10: '_2s2-3s', 11: '_2s2-2p3s', 12: '_2s2-3p', 19: '_2s2-2p3s'}
-par2label = {None: '', 'CII1012': '6580', 'CI1119': '10693'}
 
 fs = 20
+
+def make_fpath(_t, vbound=None):
+    inp_dir = '11fe_' + _t + 'd_C-best'    
+    fname = 'line_interaction-downbranch_' + 'C-F2-1.00_C-F1-0.2'
+    if vbound is not None:
+        inp_dir += '_boundary'
+        fname = 'v_start_F2-' + vbound + '_' + fname + '_v_stop_F1-' + vbound      
+    return path_tardis_output + inp_dir + '/' + fname + '/' + fname
+
+def make_idx(_t, _v):
+    if _v is None:
+        return _t + '_13500_'
+    else:
+        return _t + '_' + _v + '_'
+        
 
 class Make_Slab(object):
     """
@@ -54,7 +68,9 @@ class Make_Slab(object):
         Atomic level of the lower state to be used. Values follow TARDIS usage.
     lvl_up : ~int
         Atomic level of the upper state to be used. Values follow TARDIS usage.      
-      
+    line : ~str
+        String to be used to make labels.         
+    
     Notes:
     ------
     The top panel will used both the lower and upper levels, as required for
@@ -67,21 +83,19 @@ class Make_Slab(object):
     ./../OUTPUT_FILES/FIGURES/Fig_opacity_Z_ion_lvl.pdf
     """
     
-    def __init__(self, syn_list, Z=6, ionization=1, lvl_low=10, lvl_up=11,
-                 show_fig=True, save_fig=False):
+    def __init__(self, Z=6, ionization=1, lvl_low=10, lvl_up=11,
+                 line='6580', show_fig=True, save_fig=False):
         
-        self.syn_list = syn_list
         self.Z = Z
         self.ionization = ionization
         self.lvl_low = lvl_low
         self.lvl_up = lvl_up
+        self.line = line
         self.show_fig = show_fig
         self.save_fig = save_fig      
         
-        self.density = 10. ** np.arange(-17.5, -11.9, 0.25)
-        self.temperature = 10. ** np.arange(3.80, 4.251, 0.01)
-        #self.temperature = 10. ** np.arange(3.75, 4.251, 0.025)
-        #self.density = 10. ** np.arange(-17.5, -11.9, 0.5)
+        self.density = 10. ** np.arange(-17.25, -11.4, 0.25)
+        self.temperature = 10. ** np.arange(3.75, 4.251, 0.01)
         self.velocity = np.linspace(19000., 20001, len(self.density))
 
         self.F = {}
@@ -111,16 +125,13 @@ class Make_Slab(object):
         self.run_make_slab()
 
     def make_label(self):
-        par = (Z2el[self.Z] + ion2symbol[self.ionization] + str(self.lvl_low)\
-                 + str(self.lvl_up))
-                
         var_label = (
           '\mathrm{' + Z2el[self.Z] + '_{' + ion2symbol[self.ionization] + '}'\
-          + '^{' + transition2symbol[self.lvl_low] + '}}')       
+          + '^{' + line2symbol[self.line] + '}}')       
 
         var_label2 = (
           '\mathrm{' + Z2el[self.Z] + '_{' + ion2symbol[self.ionization]
-          + '}\ \lambda ' + par2label[par] + '}')   
+          + '}\ \lambda ' + self.line + '}')   
 
         ion_label = '\mathrm{' + Z2el[self.Z] + '_{' + ion2symbol[self.ionization] + '}}' 
         
@@ -130,7 +141,7 @@ class Make_Slab(object):
         #Make figure name.
         self.fname = (
           'Fig_opacity_' + Z2el[self.Z] + '_' + ion2symbol[self.ionization]\
-          + transition2str[self.lvl_low]  + '.pdf')
+          + '_' + self.line  + '.pdf')
 
     def set_fig_frame(self):
         """Define the configuration of the figure axes."""
@@ -145,7 +156,7 @@ class Make_Slab(object):
         self.ax_top.set_ylabel(y_label_top, fontsize=fs)
         self.ax_top.set_yscale('log')
         self.ax_top.set_xlim(8000., 25000.)
-        self.ax_top.set_ylim(1.e-5,1.e1)
+        self.ax_top.set_ylim(1.e-5,1.e2)
         self.ax_top.tick_params(axis='y', which='major', labelsize=fs, pad=8)       
         self.ax_top.tick_params(axis='x', which='major', labelsize=fs, pad=8)
         self.ax_top.tick_params(
@@ -168,66 +179,83 @@ class Make_Slab(object):
     def retrieve_number_dens(self):
         
         #Iterate over simulations.
-        for i, syn in enumerate(self.syn_list):
-            
-            self.D[str(i) + '_eldens'] = []
-            self.D[str(i) + '_iondens'] = []
-            self.D[str(i) + '_lvldens'] = []
-            self.D[str(i) + '_opacity'] = []
-            
-            lvldens = pd.read_hdf(
-              syn + '.hdf', '/simulation/plasma/level_number_density')     
-            numdens = pd.read_hdf(
-              syn + '.hdf', '/simulation/plasma/number_density')
-            iondens = pd.read_hdf(
-              syn + '.hdf', '/simulation/plasma/ion_number_density')
-            opacity = pd.read_hdf(
-              syn + '.hdf', '/simulation/plasma/tau_sobolevs')
-            self.D[str(i) + '_vinner'] = (pd.read_hdf(
-              syn + '.hdf', '/simulation/model/v_inner').values * u.cm /
-              u.s).to(u.km / u.s)
-            self.D[str(i) + '_density'] = (pd.read_hdf(
-              syn + '.hdf', '/simulation/plasma/density')).values / u.cm**3 * u.g 
-            
-            #Iterate over shells.
-            for j in range(len(self.D[str(i) + '_vinner'])):
+        for _t in t_label:
+            for vbound in ['12000', None, '15000']:
+                fpath = make_fpath(_t, vbound)
+                idx = make_idx(_t, vbound)
+                
+                self.D[idx + '_eldens'] = []
+                self.D[idx + '_iondens'] = []
+                self.D[idx + '_lvldens'] = []
+                self.D[idx + '_opacity'] = []
+                
+                lvldens = pd.read_hdf(
+                  fpath + '.hdf', '/simulation/plasma/level_number_density')     
+                numdens = pd.read_hdf(
+                  fpath + '.hdf', '/simulation/plasma/number_density')
+                iondens = pd.read_hdf(
+                  fpath + '.hdf', '/simulation/plasma/ion_number_density')
+                opacity = pd.read_hdf(
+                  fpath + '.hdf', '/simulation/plasma/tau_sobolevs')
+                self.D[idx + '_vinner'] = (pd.read_hdf(
+                  fpath + '.hdf', '/simulation/model/v_inner').values * 1.e-5)
+                self.D[idx + '_density'] = (pd.read_hdf(
+                  fpath + '.hdf', '/simulation/plasma/density')).values / u.cm**3 * u.g 
+                
+                #Iterate over shells.
+                for j in range(len(self.D[idx + '_vinner'])):
 
-                #Get el, ion and lvl number density density per shell.
-                self.D[str(i) + '_eldens'].append(numdens.loc[self.Z][j])
-                self.D[str(i) + '_iondens'].append(
-                  iondens.loc[self.Z,self.ionization][j])
-               
-                if self.lvl_low is not None:
-                    self.D[str(i) + '_lvldens'].append(
-                      lvldens.loc[self.Z,self.ionization,self.lvl_low][j])                
-                    self.D[str(i) + '_opacity'].append(opacity.loc[self.Z,
-                      self.ionization,self.lvl_low,self.lvl_up][j].values[0])
-                else:
-                    self.D[str(i) + '_lvldens'].append(float('Nan'))   
-                    self.D[str(i) + '_opacity'].append(float('Nan'))                          
-                        
-                #Test that sumation of ions density equals el density.
-                #print numdens.loc[self.Z][j] - sum(iondens.loc[self.Z][j])
-                #print iondens.loc[self.Z,self.ionization][j] - sum(lvldens.loc[self.Z,self.ionization][j])
+                    #Get el, ion and lvl number density density per shell.
+                    self.D[idx + '_eldens'].append(numdens.loc[self.Z][j])
+                    self.D[idx + '_iondens'].append(
+                      iondens.loc[self.Z,self.ionization][j])
+                   
+                    if self.lvl_low is not None:
+                        self.D[idx + '_lvldens'].append(
+                          lvldens.loc[self.Z,self.ionization,self.lvl_low[0]][j])                
+                        _opacity = 0.
+                        for (lvl_l,lvl_u) in zip(self.lvl_low,self.lvl_up):
+                            _opacity += opacity.loc[
+                              self.Z,self.ionization,lvl_l,lvl_u][j].values[0]
+                        self.D[idx + '_opacity'].append(_opacity)
+                    else:
+                        self.D[idx + '_lvldens'].append(float('Nan'))   
+                        self.D[idx + '_opacity'].append(float('Nan'))                          
+                            
+                    #Test that sumation of ions density equals el density.
+                    #print numdens.loc[self.Z][j] - sum(iondens.loc[self.Z][j])
+                    #print iondens.loc[self.Z,self.ionization][j] - sum(lvldens.loc[self.Z,self.ionization][j])
 
-            #Convert lists to arrays.
-            self.D[str(i) + '_eldens'] = np.asarray(self.D[str(i) + '_eldens'])
-            self.D[str(i) + '_iondens'] = np.asarray(self.D[str(i) + '_iondens'])
-            self.D[str(i) + '_lvldens'] = np.asarray(self.D[str(i) + '_lvldens'])
-            self.D[str(i) + '_opacity'] = np.asarray(self.D[str(i) + '_opacity'])
+                #Convert lists to arrays.
+                self.D[idx + '_eldens'] = np.asarray(self.D[idx + '_eldens'])
+                self.D[idx + '_iondens'] = np.asarray(self.D[idx + '_iondens'])
+                self.D[idx + '_lvldens'] = np.asarray(self.D[idx + '_lvldens'])
+                self.D[idx + '_opacity'] = np.asarray(self.D[idx + '_opacity'])
 
     def plotting_top(self):
-        for i in range(len(self.syn_list)):
-            #y = self.D[str(i) + '_opacity'] * (float(t_list[i]) / 10.)**2.
-            y = self.D[str(i) + '_opacity']
+        for i, _t in enumerate(t_label):
+
+            #Curves where the separation between the inner and outer zones is
+            #the default one, i.e. 13500 km/s
+            idx = make_idx(_t, None)
+            x, y = self.D[idx + '_vinner'], self.D[idx + '_opacity']
+            
             self.ax_top.plot(
-              self.D[str(i) + '_vinner'], y,
-              ls='-', lw=3., marker=marker[i], markersize=9., markevery=2,
-              color=color[i],
-              label = r'$\rm{t_{exp}\ =\ ' + t_list[i] + '\ \mathrm{d}}$')        
+              x, y, ls='-', lw=3., marker=marker[i], markersize=9., markevery=2,
+              color=color[i], label = r'$\rm{t_{exp}\ =\ ' + t_list[i] + '\ \mathrm{d}}$') 
+
+            #Fill between. This shows the effects of displacing the velocity
+            #boundary between the inner and outer zones.
+            idx_l, idx_u = make_idx(_t, '12000'), make_idx(_t, '15000')
+            y_l, y_u = self.D[idx_l + '_opacity'], self.D[idx_u + '_opacity']
+            self.ax_top.fill_between(x, y_l, y_u, color=color[i], alpha=0.3)
+            
+            #Add linestyles for clarity.
+            self.ax_top.plot(x, y_l, ls=':', lw=1., marker='None', color=color[i])                     
+            self.ax_top.plot(x, y_u, ls='--', lw=1., marker='None', color=color[i])                     
         
         self.ax_top.legend(frameon=False, fontsize=fs, numpoints=1, ncol=1,
-                           labelspacing=0.1, loc=1)
+                           labelspacing=0.1, loc='best')
     
                             
     def make_input_files(self):
@@ -265,9 +293,7 @@ class Make_Slab(object):
                 lvl_number = 0.
                 if self.lvl_low is not None:
                     lvl_number = self.sim.plasma.level_number_density.loc[
-                      self.Z,self.ionization,self.lvl_low][j]
-                    opacity_number = self.sim.plasma.tau_sobolevs.loc[
-                      self.Z,self.ionization,self.lvl_low,self.lvl_up][j].values[0]
+                      self.Z,self.ionization,self.lvl_low[0]][j]
                 else:
                     lvl_number = float('NaN')
                 
@@ -288,7 +314,6 @@ class Make_Slab(object):
                                 
                 D['lvl_T' + str(i) + 'rho' + str(j)] = lvl_number / total_ions
                 D['ion_T' + str(i) + 'rho' + str(j)] = ion_number / total_ions
-                D['opacity_T' + str(i) + 'rho' + str(j)] = opacity_number
         
                 #Test to compare against plot.
                 #print T, self.sim.model.density[j], lvl_number / total_ions
@@ -298,14 +323,12 @@ class Make_Slab(object):
             for i in range(len(self.temperature)):
                 lvl.append(D['lvl_T' + str(i) + 'rho' + str(j)])
                 ion.append(D['ion_T' + str(i) + 'rho' + str(j)])
-                opacity.append(D['opacity_T' + str(i) + 'rho' + str(j)])
                 
                 rho_test.append(self.density[1::][j])
                 T_test.append(self.temperature[i])
                 
         self.lvl = np.array(lvl)
         self.ion = np.array(ion)
-        self.opacity = np.array(opacity)
         
         #Test to compare against plot.
         #idx_max = self.lvl.argmax()
@@ -332,32 +355,23 @@ class Make_Slab(object):
           norm=colors.LogNorm(vmin=qtty_min,  vmax=qtty_max))
 
         #Format ticks. Note that the range of values plotted in x (and y) is
-        #defined when calling imshow, under the 'extent' argument.
-        yevery = 4
+        #defined when calling imshow, under the 'extent' argument. Note
+        #that density[0] is not used as it is the density at the photosphere.
         yticks_pos = np.arange(1.5, self.N_shells + 0.6, 1.)
-        yticks_pos_major = np.arange(1.5, self.N_shells + 0.6, yevery)
-        yticks_label = []
-        for i in xrange(0, self.N_shells, yevery):
-            #Every two ticks, name the label according to the density. Note
-            #that density[0] is not actually used as it is the density
-            #at the photosphere.
-            yticks_label.append(int(np.log10(self.density[i + 1])))
+        yticks_major_cond = (np.log10(self.density[1:]) % 1 == 0.)
+        yticks_major_pos = yticks_pos[yticks_major_cond] 
+        yticks_major_label = np.log10(self.density[1:])[yticks_major_cond].astype(int)
         self.ax_bot.set_yticks(yticks_pos, minor=True)
-        self.ax_bot.set_yticks(yticks_pos_major, minor=False)
-        self.ax_bot.set_yticklabels(yticks_label, rotation='vertical')
+        self.ax_bot.set_yticks(yticks_major_pos, minor=False)
+        self.ax_bot.set_yticklabels(yticks_major_label, rotation='vertical')        
         
-        xevery = 10
         xticks_pos = np.arange(1.5, len(self.temperature) + 0.6, 1.)
-        xticks_pos_major = np.arange(1.5, len(self.temperature) + 0.6, xevery)
-        xticks_label = []
-        for i in xrange(0, len(self.temperature), xevery):
-            #Different than the density, all temperatures are used since the
-            #T is set across the ejecta and the there is no "photosphere" value.
-            xticks_label.append(format(np.log10(self.temperature[i]), '.2f'))
-            #xticks_label[i] = format(self.temperature[i], '.2f')
+        xticks_major_cond = (np.round((np.log10(self.temperature) * 10.),2) % 1 == 0.)        
+        xticks_major_pos = xticks_pos[xticks_major_cond] 
+        xticks_major_label = np.log10(self.temperature)[xticks_major_cond]
         self.ax_bot.set_xticks(xticks_pos, minor=True)
-        self.ax_bot.set_xticks(xticks_pos_major, minor=False)
-        self.ax_bot.set_xticklabels(xticks_label)
+        self.ax_bot.set_xticks(xticks_major_pos, minor=False)
+        self.ax_bot.set_xticklabels(xticks_major_label)
         
         cbar = self.fig.colorbar(_im, orientation='vertical', pad=0.01,
                                       fraction=0.10, aspect=20, ax=self.ax_bot)
@@ -376,8 +390,9 @@ class Make_Slab(object):
     def add_tracks_bot(self):
 
         #Add 11fe tracks
-        for i, syn in enumerate(self.syn_list):
-            with open(syn + '.pkl', 'r') as inp:
+        for i, _t in enumerate(t_label):
+            fpath = make_fpath(_t)
+            with open(fpath + '.pkl', 'r') as inp:
                 pkl = cPickle.load(inp)
                 t_rad = pkl['t_rad'].value
                 density = pkl['density'].value
@@ -447,28 +462,12 @@ class Make_Slab(object):
         self.clean_up()
         plt.close()
         
-if __name__ == '__main__': 
-    
-    #Mazzali profiles.
-    case_folder = path_tardis_output + '11fe_default_L-scaled/'
-    f1 = 'velocity_start-'
-    f2 = '_loglum-'
-    f3 = '_line_interaction-downbranch_time_explosion-'
-    syn_list_orig = [case_folder + (f1 + v + f2 + L + f3 + t) + '/'
-                     + (f1 + v + f2 + L + f3 + t)
-                     for (v, L, t) in zip(v_list, L_list, t_list)]
+if __name__ == '__main__':  
 
-    #Accepted model profile
-    X_i = '0.2'
-    X_o = '1.00'
+    Make_Slab(
+      Z=6, ionization=0, lvl_low=[7, 6, 8, 7, 8], lvl_up=[15, 14, 16, 14, 15],
+      line='10693', show_fig=False, save_fig=True)
 
-    fname = 'line_interaction-downbranch_excitation-dilute-lte_'\
-            + 'C-F2-' + X_o + '_C-F1-' + X_i
-    syn_list = [path_tardis_output + '11fe_' + t + 'd_C-best/' + fname
-                     + '/' + fname for t in t_label]  
-
-    #Make_Slab(syn_list, Z=6, ionization=0, lvl_low=11, lvl_up=19,
-    #          show_fig=True, save_fig=True)
-
-    Make_Slab(syn_list, Z=6, ionization=1, lvl_low=10, lvl_up=12,
-              show_fig=True, save_fig=False)    
+    Make_Slab(
+      Z=6, ionization=1, lvl_low=[10,10], lvl_up=[11,12],
+      line='6580', show_fig=False, save_fig=True)    

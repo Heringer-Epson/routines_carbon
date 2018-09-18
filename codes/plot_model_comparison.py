@@ -8,6 +8,9 @@ from astropy import constants as const
 from astropy import units as u
 from binning import make_bin
 
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['font.family'] = 'STIXGeneral'  
 mpl.rcParams['hatch.color'] = '#e41a1c'
 
 M_sun = const.M_sun.to('g').value
@@ -92,8 +95,8 @@ class Plot_Models(object):
     def set_fig_frame(self):
         
         x_label = r'$v\ \ \rm{[km\ \ s^{-1}]}$'
-        y_label_XC = r'$X(\rm{C})$'
-        y_label_mass = r'$m(\rm{C})\ \ \rm{[M_\odot]}$'
+        y_label_XC = r'$X_{\rm C}$'
+        y_label_mass = r'$m_{\rm C}\ \ \rm{[M_\odot]}$'
 
         self.ax_XC.set_ylabel(y_label_XC, fontsize=fs)
         self.ax_XC.set_yscale('log')
@@ -121,6 +124,9 @@ class Plot_Models(object):
               'both', length=8, width=1, which='major', direction='in')
             self.ax_mass.tick_params(
               'both', length=4, width=1, which='minor', direction='in')
+        else:
+            self.ax_XC.set_xlabel(x_label, fontsize=fs)
+            
 
     def add_analysis_regions(self):
 
@@ -134,20 +140,26 @@ class Plot_Models(object):
         dens = 10.**dens * u.g / u.cm**3.
         
         #Allowed regions
+        #Note. In the simulations, the abundance in a given layer will remain
+        #the same until it changes in the velocity of the next layer. For example
+        #If there are two layers at 15808 and 16064 km/s and the abundance is
+        #set to change at 16000 km/s, it will remain the same up to 16064 km/s.
         def allowed_C(v_array):
             X_l_array, X_u_array = [], []
             for v in v_array.to(u.km / u.s).value:
                 if v < 7850:
                     X_l, X_u = float('NaN'), float('NaN')
-                elif v >= 7850 and v < 11300.:
+                elif v >= 7850 and v < 11465.:
                     X_l, X_u = 0., 5.e-3
-                elif v >= 11300 and v < 12400.:
+                elif v >= 11465. and v < 13680.:
                     X_l, X_u = 0., 1.e-2
-                elif v >= 12400 and v < 13300.:
+                elif v >= 12424. and v < 13680.:
                     X_l, X_u = 0., 5.e-2
-                elif v >= 13300 and v < 15808.:
-                    X_l, X_u = 5.e-3, 5.e-2
-                elif v > 15808.:
+                elif v >= 13680. and v < 16064.:
+                    X_l, X_u = 1.e-3, 5.e-2
+                elif v >= 16064 and v < 19168.:
+                    X_l, X_u = 0., 5.e-1
+                elif v > 19168.:
                     X_l, X_u = float('NaN'), float('NaN')  
                 X_l_array.append(X_l)
                 X_u_array.append(X_u)
@@ -179,10 +191,7 @@ class Plot_Models(object):
         self.ax_XC.fill_between([0., 7850.], [0., 0.], [1., 1.],
           color='#bababa', edgecolor='None', alpha=0.5)              
 
-        #Note below the vel limit should ideally be 16000 km/s, but because 11fe
-        #TARDIS model has a crelatively coarse vel binning, this causes an
-        #artificial discontinuity.
-        self.ax_XC.fill_between([15808., 35000.], [0., 0.], [1., 1.],
+        self.ax_XC.fill_between([19168., 35000.], [0., 0.], [1., 1.],
           color='#bababa', edgecolor='None', alpha=0.5) 
 
         if self.mass_subp:
@@ -225,7 +234,7 @@ class Plot_Models(object):
             self.ax_mass.fill_between([0., 7850.], [0., 0.], [1., 1.],
               color='#bababa', edgecolor='None', alpha=0.5)        
 
-            self.ax_mass.fill_between([15808., 35000.], [0., 0.], [1., 1.],
+            self.ax_mass.fill_between([19168., 35000.], [0., 0.], [1., 1.],
               color='#bababa', edgecolor='None', alpha=0.5)   
         
     def add_tomography_models(self):             
@@ -400,6 +409,7 @@ class Plot_Models(object):
             plt.show()
         
 if __name__ == '__main__':
+    #Plot_Models(mass_subp=False, show_fig=True, save_fig=False)
     Plot_Models(mass_subp=False, show_fig=False, save_fig=True)
     Plot_Models(mass_subp=True, show_fig=False, save_fig=True)
 

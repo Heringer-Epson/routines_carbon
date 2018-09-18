@@ -17,7 +17,7 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-date_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])
+date_list = np.array(['3.7', '5.9', '9.0', '12.1', '16.1', '19.1'])
 Nd = len(date_list)
 fs = 20.
 
@@ -65,8 +65,11 @@ class Plot_Best(object):
     ./../OUTPUT_FILES/FIGURES/Fig_best_with-models.pdf
     """
     
-    def __init__(self, add_models=False, show_fig=True, save_fig=False):
+    def __init__(self, vbound_l=None, vbound_u=None, add_models=False,
+                 show_fig=True, save_fig=False):
 
+        self.vbound_l = vbound_l
+        self.vbound_u = vbound_u
         self.add_models = add_models
         self.show_fig = show_fig
         self.save_fig = save_fig   
@@ -81,11 +84,12 @@ class Plot_Best(object):
         dx = 0.19
         dy = 0.08
         
-        self.F['axi_o0'] = self.fig.add_axes([xloc, 0.794, dx, dy])
-        self.F['axi_o1'] = self.fig.add_axes([xloc, 0.640, dx, dy])
-        self.F['axi_o2'] = self.fig.add_axes([xloc, 0.485, dx, dy])
-        self.F['axi_o3'] = self.fig.add_axes([xloc, 0.330, dx, dy])
-        self.F['axi_o4'] = self.fig.add_axes([xloc, 0.175, dx, dy])
+        self.F['axi_o0'] = self.fig.add_axes([xloc, 0.793, dx, dy])
+        self.F['axi_o1'] = self.fig.add_axes([xloc, 0.665, dx, dy])
+        self.F['axi_o2'] = self.fig.add_axes([xloc, 0.537, dx, dy])
+        self.F['axi_o3'] = self.fig.add_axes([xloc, 0.408, dx, dy])
+        self.F['axi_o4'] = self.fig.add_axes([xloc, 0.279, dx, dy])
+        self.F['axi_o5'] = self.fig.add_axes([xloc, 0.150, dx, dy])
 
         plt.subplots_adjust(hspace=0.03)
 
@@ -120,23 +124,28 @@ class Plot_Best(object):
             self.F['ax' + idx].xaxis.set_minor_locator(MultipleLocator(500.))
             self.F['ax' + idx].xaxis.set_major_locator(MultipleLocator(2000.))         
             self.F['ax' + idx].tick_params(labelleft='off')          
-            if idx != '4':
+            if idx != '5':
                 self.F['ax' + idx].tick_params(labelbottom='off')          
-            if idx == '4':
+            if idx == '5':
                 self.F['ax' + idx].set_xlabel(x_label, fontsize=fs)    
 
     def loop_dates(self):
         for j, date in enumerate(date_list):
             idx = str(j)        
-            Add_Curves(self.F['ax' + idx], self.F['axi_o' + idx],
-                       date, j, self.add_models).run_add_curves()  
+            Add_Curves(
+              self.F['ax' + idx], self.F['axi_o' + idx], date, j, self.vbound_l,
+              self.vbound_u, self.add_models).run_add_curves()  
             
-    def save_figure(self):
+    def save_figure(self):        
         fname = 'Fig_best'    
         if self.add_models:
             fname += '_with-models'        
+        if self.vbound_l is not None and self.vbound_u is not None:
+            fname += '_' + self.vbound_l + '_' + self.vbound_u        
         if self.save_fig:
-            directory = './../OUTPUT_FILES/FIGURES/'
+            directory = './../OUTPUT_FILES/FIGURES/BEST/'
+            if not os.path.exists(directory):
+                os.makedirs(directory)
             plt.savefig(directory + fname + '.pdf',
                         format='pdf', dpi=360, bbox_inches='tight')
     
@@ -150,15 +159,18 @@ class Plot_Best(object):
 
 class Add_Curves(object):
     
-    def __init__(self, ax, axi_o, t_exp, idx=1, add_models=False):
+    def __init__(self, ax, axi_o, t_exp, idx=1,v_l=None, v_u=None,
+                 add_models=False):
         
         self.t_exp = t_exp        
         self.ax = ax
         self.axi_o = axi_o
         self.idx = idx
+        self.v_l = v_l
+        self.v_u = v_u
         self.add_models = add_models
         self.t = str(int(round(float(self.t_exp))))
-        self.panel = ['a', 'b', 'c', 'd', 'e']
+        self.panel = ['a', 'b', 'c', 'd', 'e', 'f']
 
         self.pkl_list = []
         self.D = {}
@@ -201,7 +213,7 @@ class Add_Curves(object):
                          label=r'$\mathrm{SN\ 2011fe}$')
             self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
                          color='k', ls='-', lw=3., zorder=2.)            
-            print self.t_exp, pkl['velocity_f7']
+            #print self.t_exp, pkl['velocity_f7']
 
         #Plot Si feature label.
         x = pkl['wavelength_minima_f7']
@@ -230,33 +242,47 @@ class Add_Curves(object):
         self.D['unc_obs'] = pkl['pEW_unc_fC']        
 
     def load_and_plot_synthetic_spectrum(self):
-        
-        def make_fpath(LI, XCi, XCo):
-            fname = ('line_interaction-' + LI + '_excitation-dilute-lte_C-F2-'
-            + XCo + '_C-F1-' + XCi)
-            return (path_tardis_output + '11fe_' + self.t
-                    + 'd_C-best/' + fname + '/' + fname + '.pkl')
-            
-        #colors = ['#d95f02', '#7570b3', '#1b9e77']
-        colors = ['#7570b3']
-        ls = ['-', ':', '--']
-        labels = [r'${\tt Downbranch}$', r'${\tt Macroatom}$']
-        
-        for j, LI in enumerate(['downbranch', 'macroatom']):
-            for i, (XCi, XCo) in enumerate(zip(['0.2'], ['1.00'])):
 
-                with open(make_fpath(LI, XCi, XCo), 'r') as inp:
-                    pkl = cPickle.load(inp)
-                    
-                    flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
-                    self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                                 color=colors[i], ls=ls[j], lw=2., zorder=1.,
-                                 label=labels[j])
+        def make_fpath(LI, XCi, XCo, vbound=None):
+            inp_dir = '11fe_' + self.t + 'd_C-best'
+            fname = 'line_interaction-' + LI + '_C-F2-' + XCo + '_C-F1-' + XCi
+            if vbound is not None:
+                inp_dir += '_boundary'
+                fname = 'v_start_F2-' + vbound + '_' + fname + '_v_stop_F1-' + vbound          
+            return path_tardis_output + inp_dir + '/' + fname + '/' + fname + '.pkl'
+        
+       
+        with open(make_fpath('downbranch', '0.2', '1.00'), 'r') as inp:
+            pkl = cPickle.load(inp)
+            print 'T =', pkl['t_inner']
+            flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
+            self.ax.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+                         ls='-', lw=2., zorder=5., label=r'${\tt Downbranch}$')
+            self.axi_o.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+                            ls='-', lw=2., zorder=5.)
+        
+        fpath_l = make_fpath('downbranch', '0.2', '1.00', self.v_l)
+        fpath_u = make_fpath('downbranch', '0.2', '1.00', self.v_u)
+        with open(fpath_l, 'r') as inp_l, open(fpath_u, 'r') as inp_u:
+            pkl_l, pkl_u = cPickle.load(inp_l), cPickle.load(inp_u)
+            flux_raw_l = pkl_l['flux_raw'] / pkl_l['norm_factor']      
+            flux_raw_u = pkl_u['flux_raw'] / pkl_u['norm_factor']      
+            self.ax.fill_between(
+              pkl_l['wavelength_corr'], flux_raw_u, flux_raw_l, color='#7570b3',
+              alpha=0.3, zorder=1.)            
+            self.axi_o.fill_between(
+              pkl_l['wavelength_corr'], flux_raw_u, flux_raw_l, color='#7570b3',
+              alpha=0.3, zorder=1.)
+        
+        
+        with open(make_fpath('macroatom', '0.2', '1.00'), 'r') as inp:
+            pkl = cPickle.load(inp)
+            flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
+            self.ax.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+                         ls=':', lw=2., zorder=3., label=r'${\tt Macroatom}$')
+            self.axi_o.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+                            ls=':', lw=2., zorder=3.)
 
-                    self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
-                                       color=colors[i], ls=ls[j], lw=2.,
-                                       zorder=1.)
-                    
     def load_and_plot_proxy_models(self):
         
         def make_fpath(model):
@@ -270,16 +296,19 @@ class Add_Curves(object):
         labels = ['W7', 'Double Det.']
 
         for i, mdl in enumerate(['W7', 'ddet']):
-            with open(make_fpath(mdl), 'r') as inp:
-                pkl = cPickle.load(inp)
-                
-                flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
-                self.ax.plot(pkl['wavelength_corr'], flux_raw,
-                             color=colors[i], ls=ls[i], lw=2., zorder=1.,
-                             label=labels[i])
+            try:
+                with open(make_fpath(mdl), 'r') as inp:
+                    pkl = cPickle.load(inp)
+                    
+                    flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
+                    self.ax.plot(pkl['wavelength_corr'], flux_raw,
+                                 color=colors[i], ls=ls[i], lw=2., zorder=1.,
+                                 label=labels[i])
 
-                self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
-                                   color=colors[i], ls=ls[i], lw=2., zorder=1.)
+                    self.axi_o.plot(pkl['wavelength_corr'], flux_raw,
+                                       color=colors[i], ls=ls[i], lw=2., zorder=1.)
+            except:
+                pass
 
     def add_legend(self):
         if self.idx == 0:
@@ -304,6 +333,9 @@ class Add_Curves(object):
         self.add_legend()
                 
 if __name__ == '__main__':
-    Plot_Best(add_models=True, show_fig=False, save_fig=True)
+    Plot_Best(vbound_l='12000', vbound_u='13500', add_models=False,
+              show_fig=False, save_fig=True)
+    #Plot_Best(vbound_l=None, vbound_u=None, add_models=False,
+    #          show_fig=True, save_fig=True)
 
     

@@ -32,16 +32,26 @@ class Print_Indexes(object):
     def __init__(self, Z, ion, w_l, w_u):
 
         fname = 'seed-23111970'
-        fpath = path_tardis_output + 'fast_single_blank/' + fname + '/' + fname + '.hdf'
+        #fpath = path_tardis_output + 'fast_single_blank/' + fname + '/' + fname + '.hdf'
+        fpath = path_tardis_output + 'fast_single_blank_up/' + fname + '/' + fname + '.hdf'
 
         lines = pd.read_hdf(fpath, '/simulation/plasma/lines').loc[Z,ion]
+        j = pd.read_hdf(fpath, '/simulation/plasma/j_blues').loc[Z,ion]
         w = lines['wavelength'].values
         w_cond = ((w > w_l) & (w < w_u))
                 
         print lines[w_cond]
+        #print lines.loc[10,12]
+        #print pd.read_hdf(fpath, '/simulation/plasma/g').loc[6,0,0]
+        #print pd.read_hdf(fpath, '/simulation/plasma/g').loc[6,1,0]
+        #print pd.read_hdf(fpath, '/simulation/plasma/g').loc[8,0,0]
+        #print pd.read_hdf(fpath, '/simulation/plasma/g').loc[8,1,0]
         
+        #print j
+        #print j.loc[40,183], j.loc[40,184]
+                
 if __name__ == '__main__': 
-    #Print_Indexes(Z=6, ion=1, w_l=6578., w_u=6582.)
-    Print_Indexes(Z=6, ion=0, w_l=10690., w_u=10696.)
+    Print_Indexes(Z=6, ion=1, w_l=6578., w_u=6585.)
+    #Print_Indexes(Z=6, ion=0, w_l=10683., w_u=10754.)
 
  

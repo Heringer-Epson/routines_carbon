@@ -16,7 +16,6 @@ from matplotlib import colors
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'  
-
 fs = 20.
 
 texp2date = {'3.7': '2011_08_25', '5.9': '2011_08_28', '9.0': '2011_08_31',
@@ -57,7 +56,7 @@ class Ctrough_Spectra(object):
         self.save_fig = save_fig   
 
         #Make adjustments depending on region of the spectra to be plotted.
-        self.date_list = np.array(['5.9', '9.0', '12.1', '16.1', '19.1'])        
+        self.date_list = np.array(['3.7', '5.9', '9.0', '12.1', '16.1', '19.1'])        
         self.Nd = len(self.date_list)
         
         if self.region == 'optical':
@@ -120,8 +119,8 @@ class Ctrough_Spectra(object):
     def set_frame(self):
 
         #Make label.
-        x_label_XC = (r'$X(\rm{C})$ at 7850 $\leq\ v \ \leq$'\
-                   r' 13300$ \ \mathrm{[km\ s^{-1}]}$')     
+        x_label_XC = (r'$X_{\rm C}$ at 7850 $\leq\ v \ \leq$'\
+                   r' 13500$ \ \mathrm{[km\ s^{-1}]}$')     
         x_label_wl = r'$\lambda \ \mathrm{[\AA}]}$'
         y_label = r'$\mathrm{Relative \ f}_{\lambda}$'
 
@@ -139,7 +138,7 @@ class Ctrough_Spectra(object):
 
                 if self.region == 'optical':
                     self.F['ax' + idx].set_xlim(6200., 6550.)
-                    self.F['ax' + idx].set_ylim(0.60, 1.15)
+                    self.F['ax' + idx].set_ylim(0.60, 1.25)
                     self.F['ax' + idx].xaxis.set_minor_locator(MultipleLocator(50.))
                     self.F['ax' + idx].xaxis.set_major_locator(MultipleLocator(200.))
                     self.F['ax' + idx].yaxis.set_minor_locator(MultipleLocator(0.05))
@@ -177,7 +176,7 @@ class Ctrough_Spectra(object):
                     self.F['ax' + idx].tick_params(labelbottom='off')          
              
                 if j == 0:
-                    x_label = r'$X(\rm{C})=' + self.s1_labels[i] + '$'
+                    x_label = r'$' + self.s1_labels[i] + '$'
                     self.F['ax' + idx].set_xlabel(
                       x_label, fontsize=fs)                    
                     self.F['ax' + idx].xaxis.set_label_position('top')
@@ -208,31 +207,27 @@ class Ctrough_Spectra(object):
 
         def get_fname(date, s1, s2): 
             t = str(int(round(float(date))))
-            case_folder = '11fe_' + t + 'd_C-plateaus_scaling/'
+            case_folder = '11fe_' + t + 'd_C-plateaus_SN/'
             fname = 'C-F2-' + s2 + '_C-F1-' + s1
             fname = case_folder + fname + '/' + fname + '.pkl'        
             return path_tardis_output + fname     
-        
+
         for j, date in enumerate(self.date_list):
             for i, s1 in enumerate(self.s1_list):
                 idx = str(j * self.N_s1 + i + 1)
                 for k, s2 in enumerate(self.s2_list):
-            
-                    if float(s2) >= float(s1):
-                        fpath = get_fname(date, s1, s2)
-                        with open(fpath, 'r') as inp:
-                            pkl = cPickle.load(inp)
-
-                            flux_raw = pkl['flux_raw'] / pkl['norm_factor']
-                            
-                            if self.region == 'optical':
-                                self.F['ax' + idx].plot(
-                                  pkl['wavelength_corr'], flux_raw, ls='-', 
-                                  color=self.palette[k], lw=2., zorder=1.)  
-                            elif self.region == 'NIR':
-                                self.F['ax' + idx].plot(
-                                  pkl['wavelength_corr'] / 1.e4, flux_raw, ls='-',
-                                  color=self.palette[k], lw=2., zorder=1.)  
+                    fpath = get_fname(date, s1, s2)
+                    with open(fpath, 'r') as inp:
+                        pkl = cPickle.load(inp)
+                        flux_raw = pkl['flux_normalized']
+                        if self.region == 'optical':
+                            self.F['ax' + idx].plot(
+                              pkl['wavelength_corr'], flux_raw, ls='-', 
+                              color=self.palette[k], lw=2., zorder=1.)  
+                        elif self.region == 'NIR':
+                            self.F['ax' + idx].plot(
+                              pkl['wavelength_corr'] / 1.e4, flux_raw, ls='-',
+                              color=self.palette[k], lw=2., zorder=1.)  
 
     def make_colorbars(self):
 
@@ -245,7 +240,7 @@ class Ctrough_Spectra(object):
         cbar = plt.colorbar(aux_mappable, cax=self.F['bar_ax'])
         cbar.set_ticks(range(self.N_s2))
         cbar.ax.tick_params(width=1, labelsize=fs)
-        cbar_label = (r'$X(\rm{C})$ at 13300 $\leq\ v \ \leq$'\
+        cbar_label = (r'$X_{\rm C}$ at 13500 $\leq\ v \ \leq$'\
                       r' 16000$ \ \mathrm{[km\ s^{-1}]}$')
         cbar.set_label(cbar_label, fontsize=fs)     
         cbar.set_ticklabels(self.s2_labels)
@@ -268,7 +263,7 @@ class Ctrough_Spectra(object):
         plt.close()        
 
 if __name__ == '__main__':
-    Ctrough_Spectra(region='optical', show_fig=True, save_fig=True)
-    Ctrough_Spectra(region='NIR', show_fig=True, save_fig=True)
+    Ctrough_Spectra(region='optical', show_fig=True, save_fig=False)
+    #Ctrough_Spectra(region='NIR', show_fig=True, save_fig=True)
 
     

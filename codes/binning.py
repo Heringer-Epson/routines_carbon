@@ -32,11 +32,17 @@ def make_bin(vel_read, dens_read, time, fb, cb):
     fb_step = fb.to(vu).value
     vel_fb = np.arange(vel_read.value[0], vel_read.value[-1], fb_step) * vu
     dens_fb = np.zeros(len(vel_fb)) * dens_read.unit
-                
+
+    #The binning procedure is tricky: the velocities passed are the velocties
+    #at the inner boundary of a layer. The actual density, opacity, abundances,
+    #etc, are those of at the upper boundary of a layer (such that the values
+    #at the photosphere can be neglected. This is taken into account below.
     for i,vb in enumerate(vel_fb):
-        idx = next(j for j,vr in enumerate(vel_read) if vr >= vb)
-        #print idx, vb
-        dens_fb[i] = dens_read[idx]
+        for j,vr in enumerate(vel_read):
+            if vr >= vb:
+                db = dens_read[j-1]
+                break        
+        dens_fb[i] = db
     
     #Compute binned mass.
     r_fb = vel_fb * time
@@ -58,16 +64,19 @@ def make_bin(vel_read, dens_read, time, fb, cb):
     
     #Compute integrate quantities in large zones (to printed for tables).
     condition_i = ((vel_fb[1:] > 7850. * u.km / u.s)
-                   & (vel_fb[1:] <= 13300. * u.km / u.s))
-    condition_o = ((vel_fb[1:] > 13300. * u.km / u.s)
-                   & (vel_fb[1:] <= 16000. * u.km / u.s))   
-    condition_u = (vel_fb[1:] > 16000. * u.km / u.s)
+                   & (vel_fb[1:] <= 13680. * u.km / u.s))
+    condition_m = ((vel_fb[1:] > 13680. * u.km / u.s)
+                   & (vel_fb[1:] <= 16064. * u.km / u.s))   
+    condition_o = ((vel_fb[1:] > 16064. * u.km / u.s)
+                   & (vel_fb[1:] <= 19478. * u.km / u.s))
+    condition_u = (vel_fb[1:] > 19478. * u.km / u.s)
 
     mass_i = sum(mass_fb[condition_i])
+    mass_m = sum(mass_fb[condition_m])
     mass_o = sum(mass_fb[condition_o])
     mass_u = sum(mass_fb[condition_u])
     
-    return vel_cb, mass_cb, mass_i, mass_o, mass_u
+    return vel_cb, mass_cb, mass_i, mass_m, mass_o, mass_u
 
 
 def get_binned_maxima(vel_read, qtty_read, fb, cb):
@@ -84,22 +93,31 @@ def get_binned_maxima(vel_read, qtty_read, fb, cb):
     qtty_fb = np.zeros(len(vel_fb)) * qtty_read.unit
                 
     for i,vb in enumerate(vel_fb):
-        idx = next(j for j,vr in enumerate(vel_read) if vr >= vb)
-        #print idx, vb
-        qtty_fb[i] = qtty_read[idx]
+        for j,vr in enumerate(vel_read):
+            if vr >= vb:
+                qr = qtty_read[j-1]
+                #print '  gotcha', vb, vr, qr
+                break        
+        qtty_fb[i] = qr
 
     #Get qtty in regions.
-    condition_i = ((vel_fb > 7850. * u.km / u.s)
-                   & (vel_fb <= 13300. * u.km / u.s))
-    condition_o = ((vel_fb > 13300. * u.km / u.s)
-                   & (vel_fb <= 16000. * u.km / u.s))   
-    condition_u = (vel_fb > 16000. * u.km / u.s)
+    condition_i = ((vel_fb[0:-1] > 7850. * u.km / u.s)
+                   & (vel_fb[0:-1] <= 13680. * u.km / u.s))
+    condition_m = ((vel_fb[0:-1] >= 13681. * u.km / u.s)
+                   & (vel_fb[0:-1] <= 16064. * u.km / u.s))   
+    condition_o = ((vel_fb[0:-1] >= 16065. * u.km / u.s)
+                   & (vel_fb[0:-1] <= 19168. * u.km / u.s))
+    condition_u = (vel_fb[0:-1] >= 19169. * u.km / u.s)
 
     qtty_i = qtty_fb[condition_i]
+    qtty_m = qtty_fb[condition_m]
     qtty_o = qtty_fb[condition_o]
     qtty_u = qtty_fb[condition_u]
     
-    return max(qtty_i), max(qtty_o), max(qtty_u)
+    #print zip(vel_fb[condition_o],qtty_fb[condition_o])
+    #print zip(vel_fb[condition_u],qtty_fb[condition_u])
+    
+    return max(qtty_i), max(qtty_m), max(qtty_o), max(qtty_u)
 
 ##Test##
 if __name__ == '__main__': 

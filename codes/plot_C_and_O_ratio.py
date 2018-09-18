@@ -13,8 +13,15 @@ k_B = const.k_B.to(u.eV / u.K)
 CII_pot = 11.26030 * u.eV #From Marion+ 2006
 OII_pot = 13.61806 * u.eV #From Marion+ 2006
 
+#Degeneracy factors **for the ground state**.
+#Can be retrieved from a TARDIS sim via
+#pd.read_hdf(fpath, '/simulation/plasma/g').loc[Z,ion,0]
+g_CI, g_CII = 1., 2.
+g_OI, g_OII = 5., 4.
+
 def Boltz_factor(_T):
-    return np.exp((OII_pot - CII_pot) / (k_B * _T))
+    return ((g_OI / g_OII) * (g_CII / g_CI)
+            * np.exp((OII_pot - CII_pot) / (k_B * _T)))
     
 class Plot_Boltz(object):
     '''

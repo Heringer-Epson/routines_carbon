@@ -11,7 +11,7 @@ XC_o = '1.00'
 XC_i = ['0.00', '0.05', '0.1', '0.2', '0.5', '1.00']
 
 def get_fname(s1, s2): 
-    case_folder = '11fe_19d_C-plateaus_scaling/'
+    case_folder = '11fe_19d_C-plateaus_SN/'
     fname = 'C-F2-' + s2 + '_C-F1-' + s1
     fname = case_folder + fname + '/' + fname + '.hdf'        
     return path_tardis_output + fname 
@@ -50,10 +50,12 @@ class Write_Opacities(object):
                 opacities = pd.read_hdf(fname, '/simulation/plasma/tau_sobolevs')
                 
                 v = velocities.values * (u.cm /u.s).to(u.km / u.s)
-                tau = opacities.loc[6,1,10,12].values[0]
-                max_tau_inner = str(max(tau[v < 13300.]))
+                tau = (opacities.loc[6,1,10,11].values[0]
+                       + opacities.loc[6,1,10,12].values[0])
+                
+                max_tau_inner = str(max(tau[v < 13680.]))
 
-                out.write('\n' + XC + ',' + max_tau_inner)
+                out.write('\n' + str(float(XC) * 0.01) + ',' + max_tau_inner)
                                     
 if __name__ == '__main__': 
     Write_Opacities()

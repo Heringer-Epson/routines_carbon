@@ -16,17 +16,12 @@ from astropy import units as u
 
 #Accepted model profile
 X_i = '0.2'
-X_o = '1.00'
+X_m = '1.00'
 
-L_list = ['8.505', '9.041', '9.362', '9.505', '9.544']
-t_list = ['5.9', '9.0', '12.1', '16.1', '19.1']
-t_label = ['6', '9', '12', '16', '19']
-v_list = ['12400', '11300', '10700', '9000', '7850']
-
-#05bl models
-L_05bl = ['8.520', '8.617', '8.745', '8.861', '8.594']
-t_05bl = ['11.0', '12.0', '14.0', '21.8', '29.9']
-v_05bl = ['8350', '8100', '7600', '6800', '3350']
+L_list = ['7.903', '8.505', '9.041', '9.362', '9.505', '9.544']
+t_list = ['3.7', '5.9', '9.0', '12.1', '16.1', '19.1']
+t_label = ['4', '6', '9', '12', '16', '19']
+v_list = ['13300', '12400', '11300', '10700', '9000', '7850']
 
 class Make_Slab(object):
     """
@@ -38,6 +33,22 @@ class Make_Slab(object):
     outskirts regions. See paper for further description. Also produces a file
     containing the range of masses that can reproduce the data (see paper for
     details of how the acceptable mass fractions are assessed).
+
+    Notes:
+    ------
+    CI has multiple lines in TARDIS in the wavelength region of study.
+    According to priv. comm. with Stuart: (Jul 30, 2018 - header Carbon paper -
+    new draft.)
+    "When quoting the optical depth, I would likely either just quote one
+    component of the main multiplet (probably the strongest single line) or
+    else sum the five strong lines of the multiplet. - I wouldn't likely
+    further complicate things with lines of other multiplets unless there is
+    really a need to - i.e. if you count the five from your list that have
+    lower levels 9, 10 and 11 you will likely have got almost all of what
+    matters.
+
+    After correction of the CARSUS database, these lower levels
+    are now 6, 7 and 8. The optical depth is the summation of these lines.
     
     Outputs:
     --------
@@ -45,13 +56,15 @@ class Make_Slab(object):
     ./../OUTPUT_FILES/OTHER/mass_range.dat
     """
     
-    def __init__(self, syn_list, Z=6, ionization_list=[0,1],
-                 transitions=[[11,19], [10,12]], save_table=False):
+    def __init__(
+      self, syn_list, Z=6, ionization_list=[0,1], transitions_CI=[[10,18],
+      [9,17], [11,19], [16,33], [10,17], [42,185], [43,188], [44,187],
+      [11,18]], transitions_CII=[[10,11], [10,12]], save_table=False):
         
         self.syn_list = syn_list
         self.Z = Z
         self.ionization_list = ionization_list
-        self.transitions = transitions
+        self.transitions = [transitions_CI, transitions_CII] 
         self.save_table = save_table              
 
         self.sim = None
@@ -96,6 +109,7 @@ class Make_Slab(object):
                 self.D[str(i) + '_eldens'].append(numdens.loc[self.Z][j])
             self.D[str(i) + '_eldens'] = np.asarray(self.D[str(i) + '_eldens'])
             
+                        
             #Iterate over ionization state and shells to get ion and
             #ion at a given state densities.
             for m in self.ionization_list:
@@ -106,11 +120,11 @@ class Make_Slab(object):
                     #required transition.
                     self.D[idx + '_iondens'].append(iondens.loc[self.Z,m][j])
                     self.D[idx + '_lvldens'].append(
-                      lvldens.loc[self.Z,m,self.transitions[m][0]][j])                
-                    self.D[idx + '_taus'].append(
-                      taus.loc[self.Z,m,self.transitions[m][0],
-                      self.transitions[m][1]][j].values[0])
-                    #Test that sumation of ions density equals el density.
+                      lvldens.loc[self.Z,m,self.transitions[m][0][0]][j])                
+                    _opacity = 0.
+                    for lvls in self.transitions[m]:
+                        _opacity += taus.loc[self.Z,m,lvls[0],lvls[1]][j].values[0]
+                    self.D[idx + '_taus'].append(_opacity)
            
         #Convert lists to arrays.
         for i, syn in enumerate(self.syn_list):
@@ -140,6 +154,7 @@ class Make_Slab(object):
                 vel_cb,\
                 self.D['m_' + qtty + str(i) + '_cb'],\
                 self.D['m_' + qtty + str(i) + '_i'],\
+                self.D['m_' + qtty + str(i) + '_m'],\
                 self.D['m_' + qtty + str(i) + '_o'],\
                 self.D['m_' + qtty + str(i) + '_u'] =\
                 make_bin(A['vel'], A[qtty], time, fb, cb)                    
@@ -159,12 +174,14 @@ class Make_Slab(object):
                     vel_cb,\
                     self.D['m_' + qtty + idx + '_cb'],\
                     self.D['m_' + qtty + idx + '_i'],\
+                    self.D['m_' + qtty + idx + '_m'],\
                     self.D['m_' + qtty + idx + '_o'],\
                     self.D['m_' + qtty + idx + '_u'] =\
                     make_bin(A['vel'], A[qtty], time, fb, cb)
 
                 #Get max taus.
                 self.D['max_tau' + idx + '_i'],\
+                self.D['max_tau' + idx + '_m'],\
                 self.D['max_tau' + idx + '_o'],\
                 self.D['max_tau' + idx + '_u'] =\
                 get_binned_maxima(A['vel'], A['taus'], fb, cb)
@@ -174,11 +191,11 @@ class Make_Slab(object):
         with open(directory + 'tb_quantities.txt', 'w') as out:
 
             #Header part.
-            out.write('\\begin{deluxetable*}{llllll}\n')
+            out.write('\\begin{deluxetable*}{lllllll}\n')
             out.write('\\tablecaption{Relevant quantities. \\label{tb:quantities}}\n')
-            out.write('\\tablecolumns{6}\n')
-            out.write('\\tablehead{\\colhead{}& \\multicolumn{5}{c}{\\dotfill Epoch\\tablenotemark{b} (d)\\dotfill}\\\\\n')
-            out.write('\\colhead{Quantity\\tablenotemark{a}} & \\colhead{5.9} & \\colhead{9} & \\colhead{12.1} & \\colhead{16.1} & \\colhead{19.1}}\n')
+            out.write('\\tablecolumns{7}\n')
+            out.write('\\tablehead{\\colhead{}& \\multicolumn{6}{c}{\\dotfill Epoch\\tablenotemark{b} (d)\\dotfill}\\\\\n')
+            out.write('\\colhead{Quantity\\tablenotemark{a}} & \\colhead{3.7} & \\colhead{5.9} & \\colhead{9} & \\colhead{12.1} & \\colhead{16.1} & \\colhead{19.1}}\n')
             out.write('\\startdata\n')
             
             
@@ -198,17 +215,18 @@ class Make_Slab(object):
             #Write info of the three regions.
             
             regions = [
-              '\\sidehead{Inner part ($v_{\\rm inner} < v \leq 13300{\\rm\\,km\\,s^{-1}}$)}\n',
-              '\\sidehead{Outer part ($13300 < v \\leq 16000{\\rm\\,km\\,s^{-1}}$)}\n',
-              '\\sidehead{Outskirts ($v > 16000{\\rm\\,km\\,s^{-1}}$)}\n']
-            for j, region in enumerate(['_i', '_o', '_u']):                
+              '\\sidehead{Inner part ($v_{\\rm inner} < v \leq 13500{\\rm\\,km\\,s^{-1}}$)}\n',
+              '\\sidehead{Middle part ($13500 < v \\leq 16000{\\rm\\,km\\,s^{-1}}$)}\n',
+              '\\sidehead{Outer part ($16000 < v \\leq 19000{\\rm\\,km\\,s^{-1}}$)}\n',
+              '\\sidehead{Outskirts ($v > 19000{\\rm\\,km\\,s^{-1}}$)}\n']
+            for j, region in enumerate(['_i', '_m', '_o', '_u']):                
             
                 out.write(regions[j])
                 
-                line1 = '$m_{\\rm tot}~(M_\\odot)$\\dotfill'
-                line2 = '$m({\\rm C})~(M_\\odot)$\dotfill'
-                line3 = '$m(\\mbox{\\ion{C}{1}})/m({\\rm C})$\\dotfill'
-                line4 = '$m(\\mbox{\\ion{C}{2}})/m({\\rm C})$\\dotfill'
+                line1 = '$M_{\\rm tot}~(M_\\odot)$\\dotfill'
+                line2 = '$M_{\\rm C}~(M_\\odot)$\dotfill'
+                line3 = '$M_{\\rm C\, I}/M_{\\rm C}$\\dotfill'
+                line4 = '$M_{\\rm C\, II}/M_{\\rm C}$\\dotfill'
                 line5 = 'max $\\tau(\\mbox{\\ion{C}{1}}~\\lambda10693)$\\ldots'
                 line6 = 'max $\\tau(\\mbox{\\ion{C}{2}}~\\lambda6580)$\\dotfill'
                 
@@ -243,25 +261,28 @@ class Make_Slab(object):
                             
             #Wrap up.
             out.write('\\enddata\n')
-            out.write('\\tablenotetext{a}{All quantities for carbon are for a fiducial model where $(X(\\rm{C})_{\\rm{i}},X(\\rm{C})_{\\rm{o}})=(0.002,0.01)$.}\n')
+            out.write('\\tablenotetext{a}{All quantities for carbon are for a fiducial model where $(\\xci , \\xcm)=(0.002,0.01)$.}\n')
             out.write('\\tablenotetext{b}{Relative to time of explosion, with maximum light at 19.1\\,d.}\n')
             out.write('\\end{deluxetable*}')
             
     def write_mass_range(self):
         X_C_i_l = 0.
         X_C_i_u = 5.e-3
-        X_C_o_l = 5.e-3
-        X_C_o_u = 5.e-2
-        
+        X_C_m_l = 1.e-3
+        X_C_m_u = 5.e-2
+        #X_C_u_l = 0.
+        #X_C_u_u = 0.4
+                
         #Input mass fractions passed were percentages.
         X_C_i = float(X_i) * 0.01 
-        X_C_o = float(X_o) * 0.01
+        X_C_m = float(X_m) * 0.01
+        #X_C_o = float(X_m) * 0.01
         
         #factor inner (outer) lower (upper)
         f_i_l = X_C_i_l / X_C_i 
         f_i_u = X_C_i_u / X_C_i 
-        f_o_l = X_C_o_l / X_C_o 
-        f_o_u = X_C_o_u / X_C_o 
+        f_m_l = X_C_m_l / X_C_m 
+        f_m_u = X_C_m_u / X_C_m 
                 
         directory = './../OUTPUT_FILES/OTHER/'
         with open(directory + 'mass_range.dat', 'w') as out:
@@ -274,10 +295,12 @@ class Make_Slab(object):
             #use last epoch so that the photosphere is at the lowest v (7850km/s)
             i = 4
             m_i = float(format(self.D['m_eldens4_i'].value, '.3f'))     
-            m_o = float(format(self.D['m_eldens4_o'].value, '.3f'))
+            m_m = float(format(self.D['m_eldens4_m'].value, '.3f'))
+            #m_o = float(format(self.D['m_eldens4_o'].value, '.3f'))
                         
-            out.write('\n7850-13300,' + str(m_i * f_i_l) + ',' + str(m_i * f_i_u))
-            out.write('\n13300-16000,' + str(m_o * f_o_l) + ',' + str(m_o * f_o_u))
+            out.write('\n7850-13500,' + str(m_i * f_i_l) + ',' + str(m_i * f_i_u))
+            out.write('\n13500-16000,' + str(m_m * f_m_l) + ',' + str(m_m * f_m_u))
+            #out.write('\n16000-19000,' + str(m_o * f_o_l) + ',' + str(m_o * f_o_u))
             
     def run_make_table(self):
         self.retrieve_number_dens()
@@ -288,11 +311,11 @@ class Make_Slab(object):
         
 if __name__ == '__main__': 
     
-    fname = 'line_interaction-downbranch_excitation-dilute-lte_'\
-            + 'C-F2-' + X_o + '_C-F1-' + X_i
+    fname = 'line_interaction-downbranch_' + 'C-F2-' + X_m + '_C-F1-' + X_i
     syn_list = [path_tardis_output + '11fe_' + t + 'd_C-best/' + fname
                      + '/' + fname for t in t_label]
-
-    Make_Slab(syn_list, Z=6, ionization_list=[0,1],
-              transitions=[[11,19], [10,12]], save_table=True)
+    
+    Make_Slab(syn_list, Z=6, ionization_list=[0,1], transitions_CI=[[7,15],
+              [6,14], [8,16], [7,14], [8,15]], transitions_CII=[[10,11],
+              [10,12]], save_table=True)
 
