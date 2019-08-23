@@ -67,9 +67,9 @@ class Ctrough_Spectra(object):
               '\mathrm{2\\times 10^{-3}}', '\mathrm{5\\times 10^{-3}}',
               '\mathrm{10^{-2}}', '\mathrm{2\\times 10^{-2}}',
               '\mathrm{5\\times 10^{-2}}']        
-            self.s2_list = ['0.2', '0.5', '1.00', '2.00', '5.00']
+            self.s2_list = ['0.00', '0.2', '0.5', '1.00', '2.00', '5.00']
             self.s2_labels = [
-              r'$\mathrm{2\times 10^{-3}}$', r'$\mathrm{5\times 10^{-3}}$',
+              r'$\mathrm{0}$', r'$\mathrm{2\times 10^{-3}}$', r'$\mathrm{5\times 10^{-3}}$',
               r'$\mathrm{10^{-2}}$', r'$\mathrm{2\times 10^{-2}}$',
               r'$\mathrm{5\times 10^{-2}}$']
        
@@ -119,7 +119,7 @@ class Ctrough_Spectra(object):
     def set_frame(self):
 
         #Make label.
-        x_label_XC = (r'$X_{\rm C}$ at 7850 $\leq\ v \ \leq$'\
+        x_label_XC = (r'$X_{\rm C}^{\rm i}$ at 7850 $\leq\ v \ \leq$'\
                    r' 13500$ \ \mathrm{[km\ s^{-1}]}$')     
         x_label_wl = r'$\lambda \ \mathrm{[\AA}]}$'
         y_label = r'$\mathrm{Relative \ f}_{\lambda}$'
@@ -240,7 +240,7 @@ class Ctrough_Spectra(object):
         cbar = plt.colorbar(aux_mappable, cax=self.F['bar_ax'])
         cbar.set_ticks(range(self.N_s2))
         cbar.ax.tick_params(width=1, labelsize=fs)
-        cbar_label = (r'$X_{\rm C}$ at 13500 $\leq\ v \ \leq$'\
+        cbar_label = (r'$X_{\rm C}^{\rm m}$ at 13500 $\leq\ v \ \leq$'\
                       r' 16000$ \ \mathrm{[km\ s^{-1}]}$')
         cbar.set_label(cbar_label, fontsize=fs)     
         cbar.set_ticklabels(self.s2_labels)
@@ -263,7 +263,7 @@ class Ctrough_Spectra(object):
         plt.close()        
 
 if __name__ == '__main__':
-    Ctrough_Spectra(region='optical', show_fig=True, save_fig=False)
+    Ctrough_Spectra(region='optical', show_fig=True, save_fig=True)
     #Ctrough_Spectra(region='NIR', show_fig=True, save_fig=True)
 
     

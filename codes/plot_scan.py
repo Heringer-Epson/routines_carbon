@@ -309,7 +309,7 @@ class Add_Curves(object):
 
 
         #self.axi_o.set_xlabel(x_label_o, fontsize=fs - 8., labelpad=-2.)
-        self.axi_o.set_xlim(6200., 6550.)
+        self.axi_o.set_xlim(6200., 6580.)
         self.axi_o.set_ylim(0.70, 1.2)
         self.axi_o.tick_params(axis='y', which='major', labelsize=fs - 8.)      
         self.axi_o.tick_params(axis='x', which='major', labelsize=fs - 8.)
@@ -326,8 +326,8 @@ class Add_Curves(object):
 
         self.axi_top = self.axi_o.twiny()
         self.axi_top.set_xlim(self.axi_o.get_xlim())
-        self.axi_top.set_xticks(v2w(np.array([5000., 10000., 15000.]), 6580.))
-        self.axi_top.set_xticklabels(['5', '10', '15'])
+        self.axi_top.set_xticks(v2w(np.array([0., 5000., 10000., 15000.]), 6580.))
+        self.axi_top.set_xticklabels(['0', '-5', '-10', '-15'])
         self.axi_top.tick_params(
           axis='x', which='both', labelsize=fs - 8., pad=0., direction='in')      
         
@@ -461,6 +461,6 @@ class Add_Curves(object):
                 
 if __name__ == '__main__':
     Make_Scan(compare_7d=False, feature_mark=False, show_fig=True, save_fig=True)
-    #Make_Scan(compare_7d=True, feature_mark=False, show_fig=True, save_fig=True)
+    Make_Scan(compare_7d=True, feature_mark=False, show_fig=True, save_fig=True)
 
     

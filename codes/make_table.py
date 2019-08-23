@@ -184,7 +184,7 @@ class Make_Slab(object):
                 self.D['max_tau' + idx + '_m'],\
                 self.D['max_tau' + idx + '_o'],\
                 self.D['max_tau' + idx + '_u'] =\
-                get_binned_maxima(A['vel'], A['taus'], fb, cb)
+                get_binned_maxima(A['vel'], A['taus'], fb, cb)        
 
     def print_table(self):
         directory = './../OUTPUT_FILES/TABLES/'
@@ -301,13 +301,44 @@ class Make_Slab(object):
             out.write('\n7850-13500,' + str(m_i * f_i_l) + ',' + str(m_i * f_i_u))
             out.write('\n13500-16000,' + str(m_m * f_m_l) + ',' + str(m_m * f_m_u))
             #out.write('\n16000-19000,' + str(m_o * f_o_l) + ',' + str(m_o * f_o_u))
+
+    def print_highMG_opacity(self):
+
+        fname = 'line_interaction-downbranch_C-F2-1.00_C-F1-0.2'
+        syn = (path_tardis_output + '11fe_9d_C-best_Mg-test/' + fname + '/'
+               + fname + '.hdf')
+
+
+        self.D['Mg_vinner'] = (pd.read_hdf(syn, '/simulation/model/v_inner').values
+                               * u.cm / u.s).to(u.km / u.s)
+        taus = pd.read_hdf(syn, '/simulation/plasma/tau_sobolevs')
+        
+        for m in self.ionization_list:
+            idx = str(m)
+            self.D[idx + '_Mg_taus'] = []
+            for j in range(len(self.D['Mg_vinner'])):               
+                _opacity = 0.
+                for lvls in self.transitions[m]:
+                    _opacity += taus.loc[self.Z,m,lvls[0],lvls[1]][j].values[0]
+                self.D[idx + '_Mg_taus'].append(_opacity)
+    
+           
+        #Convert lists to arrays.
+        for m in self.ionization_list:
+            idx = str(m)
+            self.D[idx + '_Mg_taus'] = np.asarray(self.D[idx + '_Mg_taus'])                
+   
+        #Print highest opacity in carbon rich zone.
+        cond = (self.D['Mg_vinner'] > 19478. * u.km / u.s)
+        print max(self.D['0_Mg_taus'][cond])
             
     def run_make_table(self):
-        self.retrieve_number_dens()
-        self.get_C_mass()
-        if self.save_table:
-            self.print_table()
-            self.write_mass_range()
+        #self.retrieve_number_dens()
+        #self.get_C_mass()
+        #if self.save_table:
+        #    self.print_table()
+        #    self.write_mass_range()
+        self.print_highMG_opacity()
         
 if __name__ == '__main__': 
     

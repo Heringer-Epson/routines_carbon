@@ -196,9 +196,9 @@ class Plot_Models(object):
 
         if self.mass_subp:
         
-            vel_cb, allowed_mass_l_cb, mass_l_i, mass_l_o, mass_l_t =\
+            vel_cb, allowed_mass_l_cb, mass_l_i, mass_l_m, mass_l_o, mass_l_u =\
               make_bin(v, allowed_Cdens_at100s_l, time, self.fb, self.cb)         
-            vel_cb, allowed_mass_u_cb, mass_l_i, mass_l_o, mass_l_t =\
+            vel_cb, allowed_mass_u_cb, mass_u_i, mass_u_m, mass_u_o, mass_u_u =\
               make_bin(v, allowed_Cdens_at100s_u, time, self.fb, self.cb)   
             #print zip(v, allowed_C_u)
             #print zip(vel_cb, allowed_mass_l_cb, allowed_mass_u_cb)
@@ -251,10 +251,10 @@ class Plot_Models(object):
 
         #Plot original work.
         self.ax_XC.plot(v, C, ls='--', color='k', lw=4.,
-                        drawstyle='steps', label=r'SN 2011fe')
+                        drawstyle='steps', label=r'SN 2011fe (M14)')
                         
         #Bottom plot
-        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+        vel_cb, mass_cb, mass_i, mass_m, mass_o, mass_u =\
           make_bin(v, Cdens_at100s, time, self.fb, self.cb) 
         
         #All quantities should have the same coarse binning, so any works
@@ -285,7 +285,7 @@ class Plot_Models(object):
                         label='W7')
 
         #Bottom plot
-        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+        vel_cb, mass_cb, mass_i, mass_m, mass_o, mass_u =\
           make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
         if self.mass_subp:
             self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
@@ -303,7 +303,7 @@ class Plot_Models(object):
                             label=labels[i])  
                             
             #Bottom plot
-            vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+            vel_cb, mass_cb, mass_i, mass_m, mass_o, mass_u =\
               make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
             if self.mass_subp:
                 self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[i], lw=4.,
@@ -340,7 +340,7 @@ class Plot_Models(object):
                         label='Double Det.')
 
         #Bottom plot
-        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+        vel_cb, mass_cb, mass_i, mass_m, mass_o, mass_u =\
           make_bin(v, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
         if self.mass_subp:
             self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-1],
@@ -370,7 +370,7 @@ class Plot_Models(object):
                         label=r'WD Det.')
 
         #Bottom plot
-        vel_cb, mass_cb, mass_i, mass_o, mass_t =\
+        vel_cb, mass_cb, mass_i, mass_m, mass_o, mass_u =\
           make_bin(v_avg, Cdens_at100s, 100. * u.s, self.fb, self.cb) 
         if self.mass_subp:
             self.ax_mass.step(self.vel_cb_center, mass_cb, ls=ls[-2],

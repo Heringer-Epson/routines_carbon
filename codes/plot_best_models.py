@@ -181,7 +181,7 @@ class Add_Curves(object):
         x_label_o = r'$\lambda \ \mathrm{[\AA}]}$'
         x_label_n = r'$\lambda \ \mathrm{[\mu m}]}$'
 
-        self.axi_o.set_xlim(6200., 6550.)
+        self.axi_o.set_xlim(6200., 6580.)
         self.axi_o.set_ylim(0.70, 1.3)
         self.axi_o.tick_params(axis='y', which='major', labelsize=fs - 4., pad=8)      
         self.axi_o.tick_params(axis='x', which='major', labelsize=fs - 4., pad=8)
@@ -235,6 +235,7 @@ class Add_Curves(object):
                      horizontalalignment='center', color='grey')
         
         #Get measured pEW.
+        print 'Si vel = ', pkl['velocity_f7']
         if np.isnan(pkl['pEW_fC']):
             pkl['pEW_fC'], pkl['pEW_unc_fC'] = 0., 0.
         
@@ -256,9 +257,9 @@ class Add_Curves(object):
             pkl = cPickle.load(inp)
             print 'T =', pkl['t_inner']
             flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
-            self.ax.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+            self.ax.plot(pkl['wavelength_corr'], flux_raw, color='g',
                          ls='-', lw=2., zorder=5., label=r'${\tt Downbranch}$')
-            self.axi_o.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+            self.axi_o.plot(pkl['wavelength_corr'], flux_raw, color='g',
                             ls='-', lw=2., zorder=5.)
         
         fpath_l = make_fpath('downbranch', '0.2', '1.00', self.v_l)
@@ -267,20 +268,28 @@ class Add_Curves(object):
             pkl_l, pkl_u = cPickle.load(inp_l), cPickle.load(inp_u)
             flux_raw_l = pkl_l['flux_raw'] / pkl_l['norm_factor']      
             flux_raw_u = pkl_u['flux_raw'] / pkl_u['norm_factor']      
+            w = pkl_l['wavelength_corr']
+            self.ax.plot(w, flux_raw_l, color='r', ls='-', lw=2., zorder=7., alpha=0.5)            
+            self.ax.plot(w, flux_raw_u, color='b', ls='-', lw=2., zorder=7., alpha=0.5)            
+
+            self.axi_o.plot(w, flux_raw_l, color='r', ls='-', lw=2., zorder=7., alpha=0.5)            
+            self.axi_o.plot(w, flux_raw_u, color='b', ls='-', lw=2., zorder=7., alpha=0.5)  
+            
+            '''
             self.ax.fill_between(
               pkl_l['wavelength_corr'], flux_raw_u, flux_raw_l, color='#7570b3',
               alpha=0.3, zorder=1.)            
             self.axi_o.fill_between(
               pkl_l['wavelength_corr'], flux_raw_u, flux_raw_l, color='#7570b3',
               alpha=0.3, zorder=1.)
-        
+            '''
         
         with open(make_fpath('macroatom', '0.2', '1.00'), 'r') as inp:
             pkl = cPickle.load(inp)
             flux_raw = pkl['flux_raw'] / pkl['norm_factor']      
-            self.ax.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+            self.ax.plot(pkl['wavelength_corr'], flux_raw, color='g',
                          ls=':', lw=2., zorder=3., label=r'${\tt Macroatom}$')
-            self.axi_o.plot(pkl['wavelength_corr'], flux_raw, color='#7570b3',
+            self.axi_o.plot(pkl['wavelength_corr'], flux_raw, color='g',
                             ls=':', lw=2., zorder=3.)
 
     def load_and_plot_proxy_models(self):
@@ -333,9 +342,9 @@ class Add_Curves(object):
         self.add_legend()
                 
 if __name__ == '__main__':
-    Plot_Best(vbound_l='12000', vbound_u='13500', add_models=False,
-              show_fig=False, save_fig=True)
+    Plot_Best(vbound_l='12000', vbound_u='15000', add_models=False,
+              show_fig=True, save_fig=True)
     #Plot_Best(vbound_l=None, vbound_u=None, add_models=False,
-    #          show_fig=True, save_fig=True)
+    #          show_fig=False, save_fig=True)
 
     

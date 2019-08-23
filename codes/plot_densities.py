@@ -7,6 +7,9 @@ from matplotlib.ticker import MultipleLocator
 from astropy import constants as const
 from astropy import units as u
 
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['font.family'] = 'STIXGeneral'  
 mpl.rcParams['hatch.color'] = '#e41a1c'
 
 M_sun = const.M_sun.to('g').value

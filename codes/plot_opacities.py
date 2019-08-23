@@ -404,7 +404,8 @@ class Make_Slab(object):
                 #Find velocity reference markers.
                 for j, v in enumerate(mark_velocities):
                     v_diff = np.abs(v_inner - v)
-                    if min(v_diff) < 115. * u.km / u.s:
+                    #if min(v_diff) < 115. * u.km / u.s:
+                    if min(v_diff) < 150. * u.km / u.s:
                         idx = (v_diff).argmin()
                     
                         self.ax_bot.plot(
